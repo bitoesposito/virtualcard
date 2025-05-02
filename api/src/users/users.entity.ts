@@ -33,7 +33,7 @@ import {
     surname: string;
   
     @Column({ nullable: true })
-    areaCode: string;
+    area_code: string;
   
     @Column({ nullable: true })
     phone: string;
@@ -42,24 +42,24 @@ import {
     website: string;
   
     @Column({ default: false })
-    isWhatsappEnabled: boolean;
+    is_whatsapp_enabled: boolean;
   
     @Column({ default: false })
-    isWebsiteEnabled: boolean;
+    is_website_enabled: boolean;
   
     @Column({ default: false })
-    isVcardEnabled: boolean;
+    is_vcard_enabled: boolean;
   
     @Column({ nullable: true, unique: true })
     slug: string;
   
     @CreateDateColumn()
-    createdAt: Date;
+    created_at: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updated_at: Date;
   
     @DeleteDateColumn()
-    deletedAt: Date;
+    deleted_ad: Date;
   }
   

@@ -7,9 +7,13 @@ services:
     volumes:
       - ./api:/src/app
     command: npm run start:dev
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      PORT: ${PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=${PORT}
     ports:
       - 3000:3000
     depends_on:

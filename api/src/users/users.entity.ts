@@ -25,6 +25,9 @@ import {
   
     @Column({ type: 'enum', enum: UserRole, default: UserRole.user })
     role: UserRole;
+
+    @Column({ default: false })
+    is_configured: boolean;
   
     @Column({ nullable: true })
     name: string;

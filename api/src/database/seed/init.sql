@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
+  uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
   role VARCHAR(32) NOT NULL DEFAULT 'admin',
+  is_configured BOOLEAN NOT NULL DEFAULT FALSE,
   name VARCHAR(255),
   surname VARCHAR(255),
   area_code VARCHAR(16),
@@ -18,8 +19,14 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Inserisce l'utente admin solo se non esiste già
-INSERT INTO users (email, password, role, created_at, updated_at)
-SELECT 'admin@mail.com', '$2b$12$BPM8pqdqyQY0AXYMp04TEue6Jl7R/uAGWdi2fOWdmPFZKXC16HNAO', 'admin', NOW(), NOW()
+INSERT INTO users (email, password, role, is_configured, created_at, updated_at)
+SELECT 
+  'admin@mail.com', 
+  '$2b$12$BPM8pqdqyQY0AXYMp04TEue6Jl7R/uAGWdi2fOWdmPFZKXC16HNAO', 
+  'admin',
+  TRUE,
+  NOW(),
+  NOW()
 WHERE NOT EXISTS (
   SELECT 1 FROM users WHERE email = 'admin@mail.com'
 );

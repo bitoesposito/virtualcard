@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, LoginDto } from './dto/auth.dto';
+import { JwtPayload } from './dto/auth.dto';
 import { from, Observable } from 'rxjs';
 
 @Injectable()
@@ -41,19 +41,7 @@ export class AuthService {
     return {
       message: 'Successfully logged in',
       accessToken: token,
-      user: {
-        id: user.id,
-        slug: user.slug,
-        name: user.name,
-        surname: user.surname,
-        is_whatsapp_enabled: user.is_whatsapp_enabled,
-        is_website_enabled: user.is_website_enabled,
-        is_vcard_enabled: user.is_vcard_enabled,
-        website: user.website,
-        area_code: user.area_code,
-        phone: user.phone,
-        created_at: user.created_at,
-      },
+      role: user.role
     };
   }
 }

@@ -33,6 +33,7 @@ export class AuthService {
     const payload: JwtPayload = {
       uuid: user.uuid,
       email: user.email,
+      is_configured: user.is_configured,
       role: user.role,
     };
 
@@ -41,6 +42,7 @@ export class AuthService {
     return {
       message: 'Successfully logged in',
       accessToken: token,
+      is_configured: user.is_configured,
       role: user.role
     };
   }

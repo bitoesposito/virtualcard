@@ -12,5 +12,6 @@ export class LoginDto {
 export interface JwtPayload {
     uuid: string;
     email: string;
+    is_configured: boolean;
     role: string;
 }

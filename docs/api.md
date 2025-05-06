@@ -14,7 +14,7 @@ PUT     user/edit               Permette la modifica del profilo utente
 DEL     user/delete             Permette l'eliminazione del profilo utente
 GET     user/list               Permette il listaggio di tutti gli utenti presenti in piattaforma
 GET     user/:slug              Visualizza tutti i dati pubblici di un profilo ricercandolo tramite slug
-GET     user/by-id/:id          Visualizza tutti i dati pubblici di un profilo ricercandolo tramite id
+GET     user/by-id/:uuid        Visualizza tutti i dati pubblici di un profilo ricercandolo tramite uuid
 
 # Struttura risposta endpoint
 
@@ -52,7 +52,7 @@ reqBody: {
 	"message": "Successfully logged in",
   "accessToken": "JWT_TOKEN_HERE",
   "user": {
-    "id": "uuid",
+    "uuid": "uuid",
     "slug": "user-slug",
     "name": "Mario",
     "surname": "Rossi",
@@ -318,7 +318,7 @@ Authorization: Bearer `<token>` di un admin.
 200: {
 	"users": [
     {
-      "id": "string",
+      "uuid": "string",
 			"name": "string",
 			"surname": "string",
 			"areaCode": "string",
@@ -347,7 +347,7 @@ Authorization: Bearer `<token>` di un admin.
 
 200: [
 	{
-    "id": "uuid",
+    "uuid": "uuid",
     "name": "Mario",
     "surname": "Rossi",
     "areaCode": "+39",
@@ -361,7 +361,7 @@ Authorization: Bearer `<token>` di un admin.
 		"createdAt": "2025-01-01T12:10:00.000Z"
   },
 	{
-    "id": "uuid2",
+    "uuid": "uuid2",
     "name": "Mario",
     "surname": "Rossi",
     "areaCode": "+39",
@@ -386,7 +386,7 @@ GET /user/{slug}
 ### Risposte
 
 200: {
-		"id": "string",
+		"uuid": "string",
     "name": "string",
     "surname": "string",
     "areaCode": "string",
@@ -411,7 +411,7 @@ GET /user/{slug}
 ### Esempio di risposta eseguita con successo
 
 200: {
-    "id": "uuid",
+    "uuid": "uuid",
     "name": "Mario",
     "surname": "Rossi",
     "areaCode": "+39",
@@ -424,7 +424,7 @@ GET /user/{slug}
     "slug": "mariorossi",
   }
 
-## user/by-id/:id
+## user/by-id/:uuid
 ### Descrizione
 
 Restituisce tutti i dati pubblici associati a un profilo utente ricercandolo tramite id, accessibile senza autenticazione.
@@ -434,7 +434,7 @@ GET /user/by-id/{id}
 ### Risposte
 
 200: {
-		"id": "string",
+		"uuid": "string",
     "name": "string",
     "surname": "string",
     "areaCode": "string",
@@ -459,7 +459,7 @@ GET /user/by-id/{id}
 ### Esempio di risposta eseguita con successo
 
 200: {
-    "id": "uuid",
+    "uuid": "uuid",
     "name": "Mario",
     "surname": "Rossi",
     "areaCode": "+39",

@@ -10,7 +10,7 @@ export class LoginDto {
 }
 
 export interface JwtPayload {
-    id: string;
+    uuid: string;
     email: string;
     role: string;
 }

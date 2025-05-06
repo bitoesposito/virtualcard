@@ -44,10 +44,10 @@ deletedAt: Date
 ### UserResponseDto
 #### Descrizione
 
-Usato in: GET /user/:slug, GET /user/by-id/:id, GET /user/list per restituire dati pubblici di un utente. 
+Usato in: GET /user/:slug, GET /user/by-id/:uuid, GET /user/list per restituire dati pubblici di un utente. 
 
 export class UserResponseDto {
-  id: string;
+  uuid: string;
   name?: string;
   surname?: string;
   areaCode?: string;

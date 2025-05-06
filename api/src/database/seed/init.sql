@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO users (email, password, role, is_configured, created_at, updated_at)
 SELECT 
   'admin@mail.com', 
-  '$2b$12$BPM8pqdqyQY0AXYMp04TEue6Jl7R/uAGWdi2fOWdmPFZKXC16HNAO', 
+  '$2a$12$z65wmsQDT.fw//g6IwXJKuTAIrcz4oeL5rVPXJfLud9SeRZNzStrO', 
   'admin',
   TRUE,
   NOW(),

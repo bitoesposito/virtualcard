@@ -24,4 +24,11 @@ export class UsersService {
         }
     });
 }
+
+  async updatePassword(uuid: string, hashedPassword: string): Promise<void> {
+    await this.userRepository.update(uuid, {
+      password: hashedPassword,
+      updated_at: new Date()
+    });
+  }
 }

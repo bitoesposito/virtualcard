@@ -1,5 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { LoginDto } from './dto/auth.dto';
+import { Body, Controller, Post, Patch } from '@nestjs/common';
+import { LoginDto, ForgotPasswordDto, UpdatePasswordDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -12,5 +12,15 @@ export class AuthController {
     async login(@Body() loginDto: LoginDto) {
         console.log('Login request received:', loginDto);
         return this.authService.login(loginDto.email, loginDto.password);
+    }
+
+    @Post('recover')
+    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+        return this.authService.forgotPassword(dto);
+    }
+
+    @Patch('verify')
+    async updatePassword(@Body() dto: UpdatePasswordDto) {
+        return this.authService.updatePassword(dto);
     }
 }

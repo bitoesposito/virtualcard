@@ -112,8 +112,7 @@ export class AuthService {
     const resetToken = this.generateResetToken(payload);
     const resetUrl = `${this.configService.get('FRONTEND_URL')}/verify?token=${resetToken}`;
 
-    // TODO: Send email with reset link
-    this.logger.log(`URL di reset generato per ${dto.email}`);
+    this.logger.log(`URL di reset: ${resetUrl}`);
 
     return {
       message: 'Se l\'indirizzo email è registrato, riceverai un link per il reset della password',

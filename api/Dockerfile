@@ -7,6 +7,7 @@ COPY tsconfig*.json ./
 
 RUN npm install
 RUN npm install pg --save
+RUN npm i -g @nestjs/cli
 
 COPY . .
 

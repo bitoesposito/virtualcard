@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   slug VARCHAR(255) UNIQUE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_ad TIMESTAMP
+  deleted_at TIMESTAMP
 );
 
 -- Inserisce l'utente admin solo se non esiste già

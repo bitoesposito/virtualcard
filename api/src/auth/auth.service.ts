@@ -14,6 +14,7 @@ export class AuthService {
   private readonly MAX_RESET_ATTEMPTS = 3;
   private readonly RESET_WINDOW_MS = 3600000; // 1 hour
   private readonly MAX_PASSWORD_LENGTH = 128;
+  private readonly invalidatedTokens = new Set<string>();
 
   constructor(
     private readonly usersService: UsersService,
@@ -167,5 +168,24 @@ export class AuthService {
       this.logger.error(`Error updating password: ${error.message}`);
       throw new UnauthorizedException('An error occurred while updating the password');
     }
+  }
+
+  async logout(user: JwtPayload) {
+    try {
+      // Add the token to the invalidated tokens set
+      this.invalidatedTokens.add(user.uuid);
+      
+      return {
+        message: 'Logout successful'
+      };
+    } catch (error) {
+      this.logger.error(`Error during logout: ${error.message}`);
+      throw new HttpException('Error during logout', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Helper method to check if a token is invalidated
+  isTokenInvalidated(uuid: string): boolean {
+    return this.invalidatedTokens.has(uuid);
   }
 }

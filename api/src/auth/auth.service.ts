@@ -28,7 +28,7 @@ export class AuthService {
     if (attempt) {
       if (now.getTime() - attempt.lastAttempt.getTime() < this.RESET_WINDOW_MS) {
         if (attempt.count >= this.MAX_RESET_ATTEMPTS) {
-          throw new HttpException('Troppi tentativi di reset password. Riprova più tardi.', HttpStatus.TOO_MANY_REQUESTS);
+          throw new HttpException('Too many password reset attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
         }
         attempt.count++;
       } else {
@@ -69,7 +69,7 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Credenziali non valide');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload: JwtPayload = {
@@ -82,7 +82,7 @@ export class AuthService {
     const token = this.generateJwt(payload);
 
     return {
-      message: 'Login effettuato con successo',
+      message: 'Login successful',
       accessToken: token,
       is_configured: user.is_configured,
       role: user.role
@@ -91,13 +91,13 @@ export class AuthService {
 
   async forgotPassword(dto: ForgotPasswordDto) {
     this.checkRateLimit(dto.email);
-    this.logger.log(`Richiesta reset password per ${dto.email}`);
+    this.logger.log(`Password reset request for ${dto.email}`);
     
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
       // Return success even if user not found to prevent email enumeration
       return {
-        message: 'Se l\'indirizzo email è registrato, riceverai un link per il reset della password',
+        message: "If the email address is registered, you will receive a password reset link",
         expiresIn: 600 // 10 minutes in seconds
       };
     }
@@ -112,60 +112,60 @@ export class AuthService {
     const resetToken = this.generateResetToken(payload);
     const resetUrl = `${this.configService.get('FRONTEND_URL')}/verify?token=${resetToken}`;
 
-    this.logger.log(`URL di reset: ${resetUrl}`);
+    this.logger.log(`Reset URL: ${resetUrl}`);
 
     return {
-      message: 'Se l\'indirizzo email è registrato, riceverai un link per il reset della password',
+      message: "If the email address is registered, you will receive a password reset link",
       expiresIn: 600 // 10 minutes in seconds
     };
   }
 
   async updatePassword(dto: UpdatePasswordDto) {
     if (dto.new_password.length > this.MAX_PASSWORD_LENGTH) {
-      throw new BadRequestException('La password è troppo lunga');
+      throw new BadRequestException('Password is too long');
     }
 
     if (dto.new_password !== dto.confirm_password) {
-      throw new BadRequestException('Le password non coincidono');
+      throw new BadRequestException('Passwords do not match');
     }
 
     try {
       const payload = this.jwtService.verify(dto.token);
       
       if (!payload.reset) {
-        throw new UnauthorizedException('Token non valido per il reset della password');
+        throw new UnauthorizedException('Token is not valid for password reset');
       }
 
       const user = await this.usersService.findByEmail(payload.email);
       if (!user) {
-        throw new UnauthorizedException('Token non valido');
+        throw new UnauthorizedException('Invalid token');
       }
 
       const hashedPassword = await bcrypt.hash(dto.new_password, 12);
       await this.usersService.updatePassword(user.uuid, hashedPassword);
 
-      // Invalida tutti i token di reset per questo utente
+      // Invalidate all reset tokens for this user
       this.resetAttempts.delete(user.email);
 
-      this.logger.log(`Password aggiornata con successo per l'utente ${user.email}`);
+      this.logger.log(`Password successfully updated for user ${user.email}`);
 
       return {
-        message: 'Password aggiornata con successo'
+        message: 'Password updated successfully'
       };
     } catch (error) {
       if (error instanceof TokenExpiredError) {
-        this.logger.warn(`Tentativo con token scaduto`);
-        throw new UnauthorizedException('Il token di reset è scaduto. Richiedi un nuovo link di reset.');
+        this.logger.warn(`Attempt with expired token`);
+        throw new UnauthorizedException('The reset token has expired. Please request a new reset link.');
       }
       if (error instanceof JsonWebTokenError) {
-        this.logger.warn(`Tentativo con token non valido`);
-        throw new UnauthorizedException('Token non valido. Richiedi un nuovo link di reset.');
+        this.logger.warn(`Attempt with invalid token`);
+        throw new UnauthorizedException('Invalid token. Please request a new reset link.');
       }
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
       }
-      this.logger.error(`Errore durante l'aggiornamento della password: ${error.message}`);
-      throw new UnauthorizedException('Si è verificato un errore durante l\'aggiornamento della password');
+      this.logger.error(`Error updating password: ${error.message}`);
+      throw new UnauthorizedException('An error occurred while updating the password');
     }
   }
 }

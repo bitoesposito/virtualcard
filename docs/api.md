@@ -164,7 +164,7 @@ reqBody: {
 ## user/create
 ### Descrizione
 
-Genera un nuovo utente con ruolo user e tutte le informazioni disponibili settate come `null`, per poi inviare tramite mail le credenziali di accesso per poter permettere all'utente di impostare una propria password e di impostare le sue informazioni di accesso.
+Genera un nuovo utente con ruolo user e tutte le informazioni disponibili settate come `null`, per poi inviare tramite mail le credenziali di accesso per poter permettere all'utente di impostare una propria password e di impostare le sue informazioni di accesso, funzionalmente identica alla auth/recover, differenziata per distinguere il workflow.
 
 reqBody {
 	"email" : string

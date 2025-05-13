@@ -63,6 +63,6 @@ import {
     updated_at: Date;
   
     @DeleteDateColumn()
-    deleted_ad: Date;
+    deleted_at: Date;
   }
   

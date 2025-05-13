@@ -14,7 +14,7 @@ export class AuthService {
   private readonly MAX_RESET_ATTEMPTS = 3;
   private readonly RESET_WINDOW_MS = 3600000; // 1 hour
   private readonly MAX_PASSWORD_LENGTH = 128;
-  private readonly invalidatedTokens = new Set<string>();
+  private readonly invalidatedTokens = new Map<string, number>(); // Map of token -> expiration timestamp
 
   constructor(
     private readonly usersService: UsersService,
@@ -172,8 +172,17 @@ export class AuthService {
 
   async logout(user: JwtPayload) {
     try {
-      // Add the token to the invalidated tokens set
-      this.invalidatedTokens.add(user.uuid);
+      // Get the token from the request
+      const token = this.jwtService.sign(user);
+      
+      // Decode the token to get expiration
+      const decoded = this.jwtService.decode(token) as { exp: number };
+      
+      // Store the token with its expiration time
+      this.invalidatedTokens.set(token, decoded.exp);
+      
+      // Clean up expired tokens
+      this.cleanupExpiredTokens();
       
       return {
         message: 'Logout successful'
@@ -185,7 +194,20 @@ export class AuthService {
   }
 
   // Helper method to check if a token is invalidated
-  isTokenInvalidated(uuid: string): boolean {
-    return this.invalidatedTokens.has(uuid);
+  isTokenInvalidated(token: string): boolean {
+    // Clean up expired tokens first
+    this.cleanupExpiredTokens();
+    
+    // Check if token is in the invalidated list
+    return this.invalidatedTokens.has(token);
+  }
+
+  private cleanupExpiredTokens() {
+    const now = Math.floor(Date.now() / 1000);
+    for (const [token, exp] of this.invalidatedTokens.entries()) {
+      if (exp < now) {
+        this.invalidatedTokens.delete(token);
+      }
+    }
   }
 }

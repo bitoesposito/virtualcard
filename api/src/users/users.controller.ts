@@ -1,10 +1,10 @@
-import { Controller, Get, UseGuards, Post, Body, HttpStatus, HttpCode, Param, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Post, Body, HttpStatus, HttpCode, Param, NotFoundException, BadRequestException, Delete, Request, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from './users.entity';
-import { CreateUserDto } from './dto/users.dto';
+import { UserEmailDto, EditUserDto } from './dto/users.dto';
 
 @Controller('users')
 export class UsersController {
@@ -17,7 +17,7 @@ export class UsersController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.admin)
     @HttpCode(HttpStatus.CREATED)
-    async createUser(@Body() createUserDto: CreateUserDto) {
+    async createUser(@Body() createUserDto: UserEmailDto) {
         return this.usersService.createUser(createUserDto);
     }
 
@@ -86,6 +86,40 @@ export class UsersController {
             isVcardEnabled: user.is_vcard_enabled,
             slug: user.slug,
             createdAt: user.created_at
+        };
+    }
+
+    @Delete('delete')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async deleteUser(@Body() deleteUserDto: UserEmailDto, @Request() req) {
+        await this.usersService.deleteUser(deleteUserDto.email, req.user);
+        return {
+            message: 'User account deleted successfully',
+            deletedAt: new Date().toISOString()
+        };
+    }
+
+    @Put('edit')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async editUser(@Body() editUserDto: EditUserDto, @Request() req) {
+        const updatedUser = await this.usersService.editUser(req.user.email, editUserDto, req.user);
+        return {
+            message: 'Profile updated successfully',
+            user: {
+                uuid: updatedUser.uuid,
+                name: updatedUser.name,
+                surname: updatedUser.surname,
+                areaCode: updatedUser.area_code,
+                phone: updatedUser.phone,
+                website: updatedUser.website,
+                isWhatsappEnabled: updatedUser.is_whatsapp_enabled,
+                isWebsiteEnabled: updatedUser.is_website_enabled,
+                isVcardEnabled: updatedUser.is_vcard_enabled,
+                slug: updatedUser.slug,
+                createdAt: updatedUser.created_at
+            }
         };
     }
 }

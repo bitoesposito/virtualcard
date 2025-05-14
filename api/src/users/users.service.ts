@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { User, UserRole } from './users.entity';
@@ -77,6 +77,28 @@ export class UsersService {
     await this.userRepository.update(uuid, {
       password: hashedPassword,
       updated_at: new Date()
+    });
+  }
+
+  async findBySlug(slug: string): Promise<User | null> {
+    if (!slug) {
+      throw new BadRequestException('Slug is required');
+    }
+
+    return this.userRepository.findOne({
+      where: {
+        slug: slug,
+        deleted_at: IsNull()
+      }
+    });
+  }
+
+  async findByUuid(uuid: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: {
+        uuid: uuid,
+        deleted_at: IsNull()
+      }
     });
   }
 }

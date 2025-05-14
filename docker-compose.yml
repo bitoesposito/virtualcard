@@ -24,20 +24,20 @@ services:
         - action: rebuild
           path: ./api
 
-  frontend:
-    build:
-      dockerfile: Dockerfile
-      context: ./frontend
-    command: npm run start
-    volumes:
-      - ./frontend:/frontend/src/app
-      - /frontend/src/app/node_modules
-    ports:
-      - 4200:4200
-    links:
-      - api
-    depends_on:
-      - api
+  # frontend:
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./frontend
+  #   command: npm run start
+  #   volumes:
+  #     - ./frontend:/frontend/src/app
+  #     - /frontend/src/app/node_modules
+  #   ports:
+  #     - 4200:4200
+  #   links:
+  #     - api
+  #   depends_on:
+  #     - api
 
   postgres:
     image: postgres:latest

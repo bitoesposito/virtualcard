@@ -2,7 +2,6 @@ services:
 
   api:
     build:
-      dockerfile: Dockerfile
       context: ./api
     volumes:
       - ./api:/src/app

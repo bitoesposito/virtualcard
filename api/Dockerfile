@@ -2,13 +2,14 @@ FROM node:23-slim
 
 WORKDIR /src/app
 
+# Install dependencies first (better caching)
 COPY package*.json ./
+RUN npm install && \
+    npm install pg --save && \
+    npm i -g @nestjs/cli
+
+# Copy configuration files
 COPY tsconfig*.json ./
-
-RUN npm install
-RUN npm install pg --save
-RUN npm i -g @nestjs/cli
-
 COPY . .
 
 CMD ["npm", "run", "start"]

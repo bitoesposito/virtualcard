@@ -1,8 +1,9 @@
-import { IsEmail, IsString, IsBoolean, IsOptional, Matches, Length } from 'class-validator';
+import { IsEmail, IsString, IsBoolean, IsOptional, Matches, Length, MaxLength } from 'class-validator';
 import { VALIDATION_PATTERNS, VALIDATION_MESSAGES } from '../../config/constants';
 
 export class UserEmailDto {
   @IsEmail({}, { message: VALIDATION_MESSAGES.EMAIL })
+  @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
   email: string;
 }
 

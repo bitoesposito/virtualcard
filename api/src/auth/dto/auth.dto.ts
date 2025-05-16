@@ -3,14 +3,21 @@ import { VALIDATION_PATTERNS, VALIDATION_MESSAGES } from '../../config/constants
 import { UserRole } from '../../users/users.entity';
 
 export class LoginDto {
-    @IsEmail({}, { message: 'Invalid email' })
+    @IsEmail({}, { message: VALIDATION_MESSAGES.EMAIL })
     @IsNotEmpty({ message: 'Email is required' })
+    @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
     email: string;
 
     @IsString()
     @IsNotEmpty({ message: 'Password is required' })
-    @MinLength(6, { message: 'Password must be at least 6 characters' })
+    @MinLength(8, { message: 'Password must be at least 8 characters' })
     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
+    @Matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        {
+            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
+        }
+    )
     password: string;
 }
 
@@ -23,7 +30,7 @@ export interface JwtPayload {
 }
 
 export class ForgotPasswordDto {
-    @IsEmail({}, { message: 'Invalid email' })
+    @IsEmail({}, { message: VALIDATION_MESSAGES.EMAIL })
     @IsNotEmpty({ message: 'Email is required' })
     @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
     email: string;
@@ -42,7 +49,7 @@ export class UpdatePasswordDto {
     @Matches(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
         {
-            message: 'Password must be at least 8 characters, include an uppercase letter, a lowercase letter, a number, and a special character'
+            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
         }
     )
     new_password: string;
@@ -54,7 +61,7 @@ export class UpdatePasswordDto {
     @Matches(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
         {
-            message: 'Password must be at least 8 characters, include an uppercase letter, a lowercase letter, a number, and a special character'
+            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
         }
     )
     confirm_password: string;

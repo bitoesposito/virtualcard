@@ -153,7 +153,7 @@ export class AuthService {
     }
   }
 
-  async updatePassword(dto: UpdatePasswordDto): Promise<ApiResponseDto<{ success: boolean }>> {
+  async updatePassword(dto: UpdatePasswordDto): Promise<ApiResponseDto<null>> {
     try {
       const payload = this.jwtService.verify(dto.token);
       if (!payload.reset) {
@@ -170,7 +170,7 @@ export class AuthService {
         return ApiResponseDto.error(updateResponse.message || 'Password update failed', HttpStatus.BAD_REQUEST);
       }
 
-      return ApiResponseDto.success({ success: true }, 'Password has been updated successfully');
+      return ApiResponseDto.success(null, 'Password has been updated successfully');
     } catch (error) {
       if (error instanceof JsonWebTokenError || error instanceof TokenExpiredError) {
         return ApiResponseDto.error('Invalid or expired token', HttpStatus.BAD_REQUEST);

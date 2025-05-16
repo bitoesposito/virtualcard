@@ -1,4 +1,6 @@
-import { IsEmail, IsString, MinLength, MaxLength, Matches, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsOptional } from 'class-validator';
+import { VALIDATION_PATTERNS, VALIDATION_MESSAGES } from '../../config/constants';
+import { UserRole } from '../../users/users.entity';
 
 export class LoginDto {
     @IsEmail({}, { message: 'Invalid email' })
@@ -15,8 +17,9 @@ export class LoginDto {
 export interface JwtPayload {
     uuid: string;
     email: string;
-    is_configured: boolean;
-    role: string;
+    role: UserRole;
+    reset?: boolean;
+    iat?: number;
 }
 
 export class ForgotPasswordDto {

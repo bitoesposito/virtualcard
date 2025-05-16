@@ -14,8 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_vcard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   slug VARCHAR(255) UNIQUE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- Inserisce l'utente admin solo se non esiste già

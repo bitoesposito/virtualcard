@@ -62,9 +62,7 @@ export class UsersService {
       const verificationUrl = `${baseUrl}/verify?token=${token}`;
 
       return {
-        message: "If the email address is registered, you will receive a password reset link",
-        email: user.email,
-        url: verificationUrl
+        email: user.email
       };
     } catch (error) {
       if (error.code === '23505' && error.constraint === 'users_email_key') {

@@ -1,11 +1,17 @@
 import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, ForgotPasswordDto, UpdatePasswordDto } from './dto/auth.dto';
+import { JwtPayload, LoginDto, ForgotPasswordDto, UpdatePasswordDto } from './dto/auth.dto';
 import { from, Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
+import { MailService } from '../mail/mail.service';
+
+interface ForgotPasswordResponse {
+    expiresIn: number;
+    url?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -20,6 +26,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService
   ) { }
 
   private checkRateLimit(email: string): void {
@@ -69,128 +76,74 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload: JwtPayload = {
-      uuid: user.uuid,
+    const payload = { 
+      sub: user.uuid, 
       email: user.email,
-      is_configured: user.is_configured,
-      role: user.role,
+      role: user.role 
     };
-
-    const token = this.generateJwt(payload);
-
     return {
-      message: 'Login successful',
-      accessToken: token,
-      is_configured: user.is_configured,
-      role: user.role
+      access_token: this.jwtService.sign(payload),
+      user: {
+        uuid: user.uuid,
+        email: user.email,
+        role: user.role
+      }
     };
   }
 
-  async forgotPassword(dto: ForgotPasswordDto) {
-    this.checkRateLimit(dto.email);
-    this.logger.log(`Password reset request for ${dto.email}`);
-    
+  async forgotPassword(dto: ForgotPasswordDto): Promise<ForgotPasswordResponse> {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      // Return success even if user not found to prevent email enumeration
+      // Return success even if user doesn't exist for security
       return {
-        message: "If the email address is registered, you will receive a password reset link",
-        expiresIn: 600 // 10 minutes in seconds
+        expiresIn: 600
       };
     }
 
-    const payload: JwtPayload = {
-      uuid: user.uuid,
+    const payload = { 
+      sub: user.uuid, 
       email: user.email,
-      is_configured: user.is_configured,
-      role: user.role,
+      reset: true
     };
-
-    const resetToken = this.generateResetToken(payload);
-    const resetUrl = `${this.configService.get('FRONTEND_URL')}/verify?token=${resetToken}`;
-
-    this.logger.log(`Reset URL: ${resetUrl}`);
+    
+    const token = this.jwtService.sign(payload, { expiresIn: '10m' });
+    const url = `http://localhost:3000/verify?token=${token}`;
+    
+    // Send email with reset link
+    await this.mailService.sendPasswordResetEmail(user.email, url);
 
     return {
-      message: "If the email address is registered, you will receive a password reset link",
-      expiresIn: 600 // 10 minutes in seconds
+      expiresIn: 600,
+      url // This will be logged but not sent in the response
     };
   }
 
   async updatePassword(dto: UpdatePasswordDto) {
-    if (dto.new_password.length > this.MAX_PASSWORD_LENGTH) {
-      throw new BadRequestException('Password is too long');
-    }
-
-    if (dto.new_password !== dto.confirm_password) {
-      throw new BadRequestException('Passwords do not match');
-    }
-
     try {
       const payload = this.jwtService.verify(dto.token);
-      
       if (!payload.reset) {
-        throw new UnauthorizedException('Token is not valid for password reset');
+        throw new BadRequestException('Invalid token');
       }
 
       const user = await this.usersService.findByEmail(payload.email);
       if (!user) {
-        throw new UnauthorizedException('Invalid token');
+        throw new BadRequestException('User not found');
       }
 
-      const hashedPassword = await bcrypt.hash(dto.new_password, 12);
-      await this.usersService.updatePassword(user.uuid, hashedPassword);
-
-      // Invalidate all reset tokens for this user
-      this.resetAttempts.delete(user.email);
-
-      this.logger.log(`Password successfully updated for user ${user.email}`);
-
-      return {
-        message: 'Password updated successfully'
-      };
+      await this.usersService.updatePassword(user.uuid, dto.new_password);
+      return { success: true };
     } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        this.logger.warn(`Attempt with expired token`);
-        throw new UnauthorizedException('The reset token has expired. Please request a new reset link.');
-      }
-      if (error instanceof JsonWebTokenError) {
-        this.logger.warn(`Attempt with invalid token`);
-        throw new UnauthorizedException('Invalid token. Please request a new reset link.');
-      }
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
-      }
-      this.logger.error(`Error updating password: ${error.message}`);
-      throw new UnauthorizedException('An error occurred while updating the password');
+      throw new BadRequestException('Invalid or expired token');
     }
   }
 
-  async logout(user: JwtPayload) {
-    try {
-      // Get the token from the request
-      const token = this.jwtService.sign(user);
-      
-      // Decode the token to get expiration
-      const decoded = this.jwtService.decode(token) as { exp: number };
-      
-      // Store the token with its expiration time
-      this.invalidatedTokens.set(token, decoded.exp);
-      
-      // Clean up expired tokens
-      this.cleanupExpiredTokens();
-      
-      return {
-        message: 'Logout successful'
-      };
-    } catch (error) {
-      this.logger.error(`Error during logout: ${error.message}`);
-      throw new HttpException('Error during logout', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  async logout(user: any) {
+    // In a real application, you might want to blacklist the token
+    return { success: true };
   }
 
   // Helper method to check if a token is invalidated

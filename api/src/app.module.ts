@@ -8,6 +8,7 @@ import { UsersController } from './users/users.controller';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { typeOrmConfig } from './config/typeorm.config';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { typeOrmConfig } from './config/typeorm.config';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
+    MailModule
   ],
   controllers: [AuthController, UsersController],
   providers: [AuthService],

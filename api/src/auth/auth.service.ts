@@ -21,7 +21,6 @@ export class AuthService {
   private readonly MAX_RESET_ATTEMPTS = 3;
   private readonly RESET_WINDOW_MS = 3600000; // 1 hour
   private readonly MAX_PASSWORD_LENGTH = 128;
-  private readonly invalidatedTokens = new Map<string, number>(); // Map of token -> expiration timestamp
 
   constructor(
     private readonly usersService: UsersService,
@@ -53,7 +52,6 @@ export class AuthService {
   }
 
   generateResetToken(payload: JwtPayload): string {
-    // Include solo le informazioni necessarie nel token
     const resetPayload = {
       sub: payload.uuid,
       email: payload.email,
@@ -85,14 +83,11 @@ export class AuthService {
       const user = userResponse.data;
       let isPasswordValid = false;
       
-      // Try bcrypt comparison first
       try {
         isPasswordValid = await bcrypt.compare(password, user.password);
       } catch (e) {
-        // If bcrypt fails (invalid hash format), compare plain text
         isPasswordValid = password === user.password;
         
-        // If plain text matches, update to hashed password
         if (isPasswordValid) {
           await this.usersService.updatePassword(user.uuid, password);
         }
@@ -130,7 +125,6 @@ export class AuthService {
       
       const userResponse = await this.usersService.findByEmail(dto.email);
       if (!userResponse.success || !userResponse.data) {
-        // Return success even if user doesn't exist for security
         return ApiResponseDto.success({ expiresIn: 600 }, 'If the email address is registered, you will receive a password reset link');
       }
 
@@ -186,31 +180,12 @@ export class AuthService {
     }
   }
 
-  async logout(user: any): Promise<ApiResponseDto<{ success: boolean }>> {
+  private getTokenExpiration(token: string): number {
     try {
-      // In a real application, you might want to blacklist the token
-      return ApiResponseDto.success({ success: true }, 'Session terminated successfully');
-    } catch (error) {
-      this.logger.error('Logout failed:', error);
-      return ApiResponseDto.error('An error occurred during logout', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  // Helper method to check if a token is invalidated
-  isTokenInvalidated(token: string): boolean {
-    // Clean up expired tokens first
-    this.cleanupExpiredTokens();
-    
-    // Check if token is in the invalidated list
-    return this.invalidatedTokens.has(token);
-  }
-
-  private cleanupExpiredTokens() {
-    const now = Math.floor(Date.now() / 1000);
-    for (const [token, exp] of this.invalidatedTokens.entries()) {
-      if (exp < now) {
-        this.invalidatedTokens.delete(token);
-      }
+      const decoded = this.jwtService.decode(token);
+      return typeof decoded === 'object' && decoded?.exp ? decoded.exp : 0;
+    } catch {
+      return 0;
     }
   }
 }

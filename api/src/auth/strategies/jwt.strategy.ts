@@ -20,14 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(request: any, payload: JwtPayload) {
-    // Get the token from the request
-    const token = request.headers.authorization?.split(' ')[1];
-    
-    // Check if the token has been invalidated
-    if (token && this.authService.isTokenInvalidated(token)) {
-      throw new UnauthorizedException('Token has been invalidated');
-    }
-
     return {
       uuid: payload.uuid,
       email: payload.email,

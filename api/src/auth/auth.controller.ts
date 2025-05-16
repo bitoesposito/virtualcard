@@ -27,11 +27,4 @@ export class AuthController {
     async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
         return await this.authService.updatePassword(updatePasswordDto);
     }
-
-    @UseGuards(JwtAuthGuard)
-    @Post('logout')
-    @HttpCode(HttpStatus.OK)
-    async logout(@Request() req) {
-        return await this.authService.logout(req.user);
-    }
 }

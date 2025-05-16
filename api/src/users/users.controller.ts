@@ -95,8 +95,7 @@ export class UsersController {
     async deleteUser(@Body() deleteUserDto: UserEmailDto, @Request() req) {
         await this.usersService.deleteUser(deleteUserDto.email, req.user);
         return {
-            message: 'User account deleted successfully',
-            deletedAt: new Date().toISOString()
+            message: 'User account deleted successfully'
         };
     }
 

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ConflictException, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User, UserRole } from './users.entity';
 import { UserEmailDto, EditUserDto } from './dto/users.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -23,7 +23,7 @@ export class UsersService {
     }
 
     try {
-      // Check if user already exists (including soft-deleted ones)
+      // Check if user already exists
       const existingUser = await this.userRepository.findOne({ 
         where: { 
           email: createUserDto.email
@@ -31,42 +31,7 @@ export class UsersService {
       });
 
       if (existingUser) {
-        if (existingUser.deleted_at) {
-          // If user exists but is soft-deleted, restore it
-          await this.userRepository.update(existingUser.uuid, {
-            deleted_at: undefined,
-            role: UserRole.user,
-            is_configured: false,
-            password: '', // Reset password as it's a new registration
-            updated_at: new Date()
-          });
-
-          // Generate verification token for restored user
-          const token = this.jwtService.sign(
-            { 
-              sub: existingUser.uuid,
-              email: existingUser.email,
-              reset: true,
-              iat: Math.floor(Date.now() / 1000)
-            },
-            { expiresIn: '1h' }
-          );
-
-          // Log token to console
-          this.logger.log(`Verification token for restored user ${existingUser.email}: ${token}`);
-
-          const baseUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-          const verificationUrl = `${baseUrl}/verify?token=${token}`;
-
-          return {
-            message: "Your account has been restored. Please set a new password",
-            email: existingUser.email,
-            url: verificationUrl
-          };
-        } else {
-          // If user exists and is not deleted, throw conflict
-          throw new ConflictException('User with this email already exists');
-        }
+        throw new ConflictException('User with this email already exists');
       }
 
       // Create new user with default values
@@ -112,22 +77,18 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ 
       where: { 
-        email,
-        deleted_at: IsNull()
+        email
       } 
     });
   }
 
   async findAll(): Promise<User[]> {
     return this.userRepository.find({
-        where: {
-            deleted_at: IsNull()
-        },
         order: {
             created_at: 'DESC'
         }
     });
-}
+  }
 
   async updatePassword(uuid: string, hashedPassword: string): Promise<void> {
     await this.userRepository.update(uuid, {
@@ -143,8 +104,7 @@ export class UsersService {
 
     return this.userRepository.findOne({
       where: {
-        slug: slug,
-        deleted_at: IsNull()
+        slug: slug
       }
     });
   }
@@ -152,16 +112,14 @@ export class UsersService {
   async findByUuid(uuid: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: {
-        uuid: uuid,
-        deleted_at: IsNull()
+        uuid: uuid
       }
     });
   }
 
   private async isSlugTaken(slug: string, excludeUuid?: string): Promise<boolean> {
     const query = this.userRepository.createQueryBuilder('user')
-      .where('user.slug = :slug', { slug })
-      .andWhere('user.deleted_at IS NULL');
+      .where('user.slug = :slug', { slug });
 
     if (excludeUuid) {
       query.andWhere('user.uuid != :uuid', { uuid: excludeUuid });
@@ -187,8 +145,7 @@ export class UsersService {
     if (userToDelete.role === UserRole.admin) {
       const adminCount = await this.userRepository.count({
         where: {
-          role: UserRole.admin,
-          deleted_at: IsNull()
+          role: UserRole.admin
         }
       });
 
@@ -197,8 +154,8 @@ export class UsersService {
       }
     }
 
-    // Soft delete the user
-    await this.userRepository.softDelete(userToDelete.uuid);
+    // Hard delete the user
+    await this.userRepository.delete(userToDelete.uuid);
   }
 
   async editUser(email: string, editUserDto: EditUserDto, requestingUser: User): Promise<User> {

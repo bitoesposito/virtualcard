@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    DeleteDateColumn,
   } from 'typeorm';
   
   export enum UserRole {
@@ -61,8 +60,5 @@ import {
   
     @UpdateDateColumn()
     updated_at: Date;
-  
-    @DeleteDateColumn()
-    deleted_at: Date;
   }
   

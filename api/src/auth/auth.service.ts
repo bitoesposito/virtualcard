@@ -2,11 +2,12 @@ import { Injectable, UnauthorizedException, BadRequestException, NotFoundExcepti
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, LoginDto, ForgotPasswordDto, UpdatePasswordDto } from './dto/auth.dto';
+import { JwtPayload, LoginDto, ForgotPasswordDto, UpdatePasswordDto, LoginResponse } from './dto/auth.dto';
 import { from, Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import { MailService } from '../mail/mail.service';
+import { ApiResponseDto } from '../common/dto/api-response.dto';
 
 interface ForgotPasswordResponse {
     expiresIn: number;
@@ -74,76 +75,125 @@ export class AuthService {
     return from(bcrypt.compare(password, hash));
   }
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { 
-      sub: user.uuid, 
-      email: user.email,
-      role: user.role 
-    };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        uuid: user.uuid,
-        email: user.email,
-        role: user.role
+  async login(email: string, password: string): Promise<ApiResponseDto<LoginResponse>> {
+    try {
+      const userResponse = await this.usersService.findByEmail(email);
+      if (!userResponse.success || !userResponse.data) {
+        return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
       }
-    };
-  }
 
-  async forgotPassword(dto: ForgotPasswordDto): Promise<ForgotPasswordResponse> {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user) {
-      // Return success even if user doesn't exist for security
-      return {
-        expiresIn: 600
+      const user = userResponse.data;
+      let isPasswordValid = false;
+      
+      // Try bcrypt comparison first
+      try {
+        isPasswordValid = await bcrypt.compare(password, user.password);
+      } catch (e) {
+        // If bcrypt fails (invalid hash format), compare plain text
+        isPasswordValid = password === user.password;
+        
+        // If plain text matches, update to hashed password
+        if (isPasswordValid) {
+          await this.usersService.updatePassword(user.uuid, password);
+        }
+      }
+
+      if (!isPasswordValid) {
+        return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      }
+
+      const payload = { 
+        sub: user.uuid, 
+        email: user.email,
+        role: user.role 
       };
+
+      const result: LoginResponse = {
+        access_token: this.jwtService.sign(payload),
+        user: {
+          uuid: user.uuid,
+          email: user.email,
+          role: user.role
+        }
+      };
+
+      return ApiResponseDto.success(result, 'Login successful');
+    } catch (error) {
+      this.logger.error(`Login failed for user ${email}:`, error);
+      return ApiResponseDto.error('An error occurred during login', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    const payload = { 
-      sub: user.uuid, 
-      email: user.email,
-      reset: true
-    };
-    
-    const token = this.jwtService.sign(payload, { expiresIn: '10m' });
-    const url = `http://localhost:3000/verify?token=${token}`;
-    
-    // Send email with reset link
-    await this.mailService.sendPasswordResetEmail(user.email, url);
-
-    return {
-      expiresIn: 600,
-      url // This will be logged but not sent in the response
-    };
   }
 
-  async updatePassword(dto: UpdatePasswordDto) {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<ApiResponseDto<ForgotPasswordResponse>> {
+    try {
+      this.checkRateLimit(dto.email);
+      
+      const userResponse = await this.usersService.findByEmail(dto.email);
+      if (!userResponse.success || !userResponse.data) {
+        // Return success even if user doesn't exist for security
+        return ApiResponseDto.success({ expiresIn: 600 }, 'If the email address is registered, you will receive a password reset link');
+      }
+
+      const user = userResponse.data;
+      const payload = { 
+        sub: user.uuid, 
+        email: user.email,
+        reset: true
+      };
+      
+      const token = this.jwtService.sign(payload, { expiresIn: '10m' });
+      const url = `http://localhost:3000/verify?token=${token}`;
+      
+      await this.mailService.sendPasswordResetEmail(user.email, url);
+
+      return ApiResponseDto.success(
+        { expiresIn: 600 },
+        'If the email address is registered, you will receive a password reset link'
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return ApiResponseDto.error(error.message, error.getStatus());
+      }
+      this.logger.error(`Password reset failed for email ${dto.email}:`, error);
+      return ApiResponseDto.error('An error occurred during password reset', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async updatePassword(dto: UpdatePasswordDto): Promise<ApiResponseDto<{ success: boolean }>> {
     try {
       const payload = this.jwtService.verify(dto.token);
       if (!payload.reset) {
-        throw new BadRequestException('Invalid token');
+        return ApiResponseDto.error('Invalid token', HttpStatus.BAD_REQUEST);
       }
 
-      const user = await this.usersService.findByEmail(payload.email);
-      if (!user) {
-        throw new BadRequestException('User not found');
+      const userResponse = await this.usersService.findByEmail(payload.email);
+      if (!userResponse.success || !userResponse.data) {
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
       }
 
-      await this.usersService.updatePassword(user.uuid, dto.new_password);
-      return { success: true };
+      const updateResponse = await this.usersService.updatePassword(userResponse.data.uuid, dto.new_password);
+      if (!updateResponse.success) {
+        return ApiResponseDto.error(updateResponse.message || 'Password update failed', HttpStatus.BAD_REQUEST);
+      }
+
+      return ApiResponseDto.success({ success: true }, 'Password has been updated successfully');
     } catch (error) {
-      throw new BadRequestException('Invalid or expired token');
+      if (error instanceof JsonWebTokenError || error instanceof TokenExpiredError) {
+        return ApiResponseDto.error('Invalid or expired token', HttpStatus.BAD_REQUEST);
+      }
+      this.logger.error('Password update failed:', error);
+      return ApiResponseDto.error('An error occurred while updating password', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async logout(user: any) {
-    // In a real application, you might want to blacklist the token
-    return { success: true };
+  async logout(user: any): Promise<ApiResponseDto<{ success: boolean }>> {
+    try {
+      // In a real application, you might want to blacklist the token
+      return ApiResponseDto.success({ success: true }, 'Session terminated successfully');
+    } catch (error) {
+      this.logger.error('Logout failed:', error);
+      return ApiResponseDto.error('An error occurred during logout', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   // Helper method to check if a token is invalidated

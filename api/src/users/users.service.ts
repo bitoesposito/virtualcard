@@ -1,10 +1,12 @@
-import { Injectable, BadRequestException, ConflictException, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Logger, NotFoundException, ForbiddenException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './users.entity';
 import { UserEmailDto, EditUserDto } from './dto/users.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcryptjs';
+import { ApiResponseDto } from '../common/dto/api-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,12 +19,12 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  async createUser(createUserDto: UserEmailDto) {
-    if (!createUserDto.email) {
-      throw new BadRequestException('Email is required');
-    }
-
+  async createUser(createUserDto: UserEmailDto): Promise<ApiResponseDto<{ email: string }>> {
     try {
+      if (!createUserDto.email) {
+        return ApiResponseDto.error('Email is required', HttpStatus.BAD_REQUEST);
+      }
+
       // Check if user already exists
       const existingUser = await this.userRepository.findOne({ 
         where: { 
@@ -31,7 +33,7 @@ export class UsersService {
       });
 
       if (existingUser) {
-        throw new ConflictException('User with this email already exists');
+        return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
       }
 
       // Create new user with default values
@@ -61,50 +63,78 @@ export class UsersService {
       const baseUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
       const verificationUrl = `${baseUrl}/verify?token=${token}`;
 
-      return {
-        email: user.email
-      };
+      return ApiResponseDto.success({ email: user.email }, 'User created successfully');
     } catch (error) {
+      this.logger.error('Failed to create user:', error);
       if (error.code === '23505' && error.constraint === 'users_email_key') {
-        throw new ConflictException('User with this email already exists');
+        return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
       }
-      throw error;
+      return ApiResponseDto.error('Failed to create user', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ 
-      where: { 
-        email
-      } 
-    });
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
+  async findAll(): Promise<ApiResponseDto<User[]>> {
+    try {
+      const users = await this.userRepository.find({
         order: {
-            created_at: 'DESC'
+          created_at: 'DESC'
         }
-    });
-  }
-
-  async updatePassword(uuid: string, hashedPassword: string): Promise<void> {
-    await this.userRepository.update(uuid, {
-      password: hashedPassword,
-      updated_at: new Date()
-    });
-  }
-
-  async findBySlug(slug: string): Promise<User | null> {
-    if (!slug) {
-      throw new BadRequestException('Slug is required');
+      });
+      return ApiResponseDto.success(users, 'Users retrieved successfully');
+    } catch (error) {
+      this.logger.error('Failed to fetch users:', error);
+      return ApiResponseDto.error('Failed to fetch users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
 
-    return this.userRepository.findOne({
-      where: {
-        slug: slug
+  async findByEmail(email: string): Promise<ApiResponseDto<User | null>> {
+    try {
+      const user = await this.userRepository.findOne({ 
+        where: { email }
+      });
+      if (!user) {
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
       }
-    });
+      return ApiResponseDto.success(user, 'User found');
+    } catch (error) {
+      this.logger.error(`Failed to find user by email ${email}:`, error);
+      return ApiResponseDto.error('Failed to find user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async updatePassword(uuid: string, password: string): Promise<ApiResponseDto<undefined>> {
+    try {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      await this.userRepository.update(uuid, {
+        password: hashedPassword,
+        updated_at: new Date()
+      });
+      return ApiResponseDto.success(undefined, 'Password updated successfully');
+    } catch (error) {
+      this.logger.error(`Failed to update password for user ${uuid}:`, error);
+      return ApiResponseDto.error('Failed to update password', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async findBySlug(slug: string): Promise<ApiResponseDto<User | null>> {
+    try {
+      if (!slug) {
+        return ApiResponseDto.error('Slug is required', HttpStatus.BAD_REQUEST);
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { slug }
+      });
+
+      if (!user) {
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      return ApiResponseDto.success(user, 'User found');
+    } catch (error) {
+      this.logger.error(`Failed to find user by slug ${slug}:`, error);
+      return ApiResponseDto.error('Failed to find user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async findByUuid(uuid: string): Promise<User | null> {
@@ -127,93 +157,89 @@ export class UsersService {
     return count > 0;
   }
 
-  async deleteUser(email: string, requestingUser: User): Promise<void> {
-    // Find the user to delete
-    const userToDelete = await this.findByEmail(email);
-    if (!userToDelete) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Check if the requesting user has permission to delete
-    if (requestingUser.role !== UserRole.admin && requestingUser.email !== email) {
-      throw new ForbiddenException('You can only delete your own account');
-    }
-
-    // If trying to delete an admin, check if it's the last one
-    if (userToDelete.role === UserRole.admin) {
-      const adminCount = await this.userRepository.count({
-        where: {
-          role: UserRole.admin
-        }
-      });
-
-      if (adminCount <= 1) {
-        throw new ForbiddenException('Cannot delete the last admin user in the system');
+  async deleteUser(email: string, requestingUser: User): Promise<ApiResponseDto<undefined>> {
+    try {
+      const userToDelete = await this.userRepository.findOne({ where: { email } });
+      if (!userToDelete) {
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
       }
-    }
 
-    // Hard delete the user
-    await this.userRepository.delete(userToDelete.uuid);
+      if (requestingUser.role !== UserRole.admin && requestingUser.email !== email) {
+        return ApiResponseDto.error('You can only delete your own account', HttpStatus.FORBIDDEN);
+      }
+
+      if (userToDelete.role === UserRole.admin) {
+        const adminCount = await this.userRepository.count({
+          where: { role: UserRole.admin }
+        });
+
+        if (adminCount <= 1) {
+          return ApiResponseDto.error('Cannot delete the last admin user', HttpStatus.FORBIDDEN);
+        }
+      }
+
+      await this.userRepository.delete(userToDelete.uuid);
+      return ApiResponseDto.success(undefined, 'User deleted successfully');
+    } catch (error) {
+      this.logger.error(`Failed to delete user ${email}:`, error);
+      return ApiResponseDto.error('Failed to delete user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  async editUser(email: string, editUserDto: EditUserDto, requestingUser: User): Promise<User> {
-    // Find the user to edit
-    const userToEdit = await this.findByEmail(email);
-    if (!userToEdit) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Check if the requesting user has permission to edit
-    if (requestingUser.role !== UserRole.admin && requestingUser.email !== email) {
-      throw new ForbiddenException('You can only edit your own profile');
-    }
-
-    // Validate required fields for first configuration
-    if (!userToEdit.is_configured) {
-      if (!editUserDto.name || !editUserDto.surname || !editUserDto.areaCode || !editUserDto.phone || !editUserDto.slug) {
-        throw new BadRequestException('All required fields must be provided for first configuration');
+  async editUser(email: string, editUserDto: EditUserDto, requestingUser: User): Promise<ApiResponseDto<User>> {
+    try {
+      const userToEdit = await this.userRepository.findOne({ where: { email } });
+      if (!userToEdit) {
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
       }
-    }
 
-    // Check if slug is already taken (if being updated)
-    if (editUserDto.slug && editUserDto.slug !== userToEdit.slug) {
-      const isTaken = await this.isSlugTaken(editUserDto.slug, userToEdit.uuid);
-      if (isTaken) {
-        throw new ConflictException({
-          message: 'This profile URL is already taken',
-          field: 'slug',
-          value: editUserDto.slug
-        });
+      if (requestingUser.role !== UserRole.admin && requestingUser.email !== email) {
+        return ApiResponseDto.error('You can only edit your own profile', HttpStatus.FORBIDDEN);
       }
-    }
 
-    // Update user fields
-    const updatedUser = await this.userRepository.update(
-      { uuid: userToEdit.uuid },
-      {
-        name: editUserDto.name,
-        surname: editUserDto.surname,
-        area_code: editUserDto.areaCode,
-        phone: editUserDto.phone,
-        website: editUserDto.website,
-        is_whatsapp_enabled: editUserDto.isWhatsappEnabled,
-        is_website_enabled: editUserDto.isWebsiteEnabled,
-        is_vcard_enabled: editUserDto.isVcardEnabled,
-        slug: editUserDto.slug,
-        is_configured: true,
-        updated_at: new Date()
+      if (!userToEdit.is_configured) {
+        if (!editUserDto.name || !editUserDto.surname || !editUserDto.areaCode || !editUserDto.phone || !editUserDto.slug) {
+          return ApiResponseDto.error('All required fields must be provided for first configuration', HttpStatus.BAD_REQUEST);
+        }
       }
-    );
 
-    if (updatedUser.affected === 0) {
-      throw new NotFoundException('Failed to update user');
+      if (editUserDto.slug && editUserDto.slug !== userToEdit.slug) {
+        const isTaken = await this.isSlugTaken(editUserDto.slug, userToEdit.uuid);
+        if (isTaken) {
+          return ApiResponseDto.error('This profile URL is already taken', HttpStatus.CONFLICT);
+        }
+      }
+
+      const updateResult = await this.userRepository.update(
+        { uuid: userToEdit.uuid },
+        {
+          name: editUserDto.name,
+          surname: editUserDto.surname,
+          area_code: editUserDto.areaCode,
+          phone: editUserDto.phone,
+          website: editUserDto.website,
+          is_whatsapp_enabled: editUserDto.isWhatsappEnabled,
+          is_website_enabled: editUserDto.isWebsiteEnabled,
+          is_vcard_enabled: editUserDto.isVcardEnabled,
+          slug: editUserDto.slug,
+          is_configured: true,
+          updated_at: new Date()
+        }
+      );
+
+      if (updateResult.affected === 0) {
+        return ApiResponseDto.error('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      const updatedUser = await this.userRepository.findOne({ where: { email } });
+      if (!updatedUser) {
+        return ApiResponseDto.error('User not found after update', HttpStatus.NOT_FOUND);
+      }
+
+      return ApiResponseDto.success(updatedUser, 'User updated successfully');
+    } catch (error) {
+      this.logger.error(`Failed to edit user ${email}:`, error);
+      return ApiResponseDto.error('Failed to edit user', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    const updatedUserData = await this.findByEmail(email);
-    if (!updatedUserData) {
-      throw new NotFoundException('User not found after update');
-    }
-
-    return updatedUserData;
   }
 }

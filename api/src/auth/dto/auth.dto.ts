@@ -59,3 +59,12 @@ export class UpdatePasswordDto {
     )
     confirm_password: string;
 }
+
+export interface LoginResponse {
+    access_token: string;
+    user: {
+        uuid: string;
+        email: string;
+        role: string;
+    };
+}

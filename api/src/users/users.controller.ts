@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from './users.entity';
+import { UserRole, User } from './users.entity';
 import { UserEmailDto, EditUserDto } from './dto/users.dto';
 import { ApiResponseDto } from '../common/dto/api-response.dto';
 
@@ -19,8 +19,7 @@ export class UsersController {
     @Roles(UserRole.admin)
     @HttpCode(HttpStatus.CREATED)
     async createUser(@Body() createUserDto: UserEmailDto) {
-        const user = await this.usersService.createUser(createUserDto);
-        return ApiResponseDto.success(user, 'If the email address is registered, you will receive a password reset link');
+        return await this.usersService.createUser(createUserDto);
     }
 
     @Get('list')
@@ -28,8 +27,12 @@ export class UsersController {
     @Roles(UserRole.admin)
     @HttpCode(HttpStatus.OK)
     async listUsers() {
-        const users = await this.usersService.findAll();
-        const formattedUsers = users.map(user => ({
+        const response = await this.usersService.findAll();
+        if (!response.success || !response.data) {
+            return response;
+        }
+
+        const formattedUsers = response.data.map(user => ({
             uuid: user.uuid,
             email: user.email,
             role: user.role,
@@ -50,22 +53,21 @@ export class UsersController {
     @Get(':slug')
     @HttpCode(HttpStatus.OK)
     async getUserBySlug(@Param('slug') slug: string) {
-        // Validate slug format
         if (!slug || typeof slug !== 'string') {
-            throw new BadRequestException('Invalid slug format');
+            return ApiResponseDto.error('Invalid slug format', HttpStatus.BAD_REQUEST);
         }
 
-        // Trim and validate slug content
         const trimmedSlug = slug.trim();
         if (trimmedSlug === '' || trimmedSlug.toLowerCase() === 'null' || trimmedSlug.toLowerCase() === 'undefined') {
-            throw new BadRequestException('Invalid slug value');
+            return ApiResponseDto.error('Invalid slug value', HttpStatus.BAD_REQUEST);
         }
 
-        const user = await this.usersService.findBySlug(trimmedSlug);
-        if (!user) {
-            throw new NotFoundException(`User with slug "${trimmedSlug}" not found`);
+        const response = await this.usersService.findBySlug(trimmedSlug);
+        if (!response.success || !response.data) {
+            return response;
         }
 
+        const user = response.data;
         const formattedUser = {
             uuid: user.uuid,
             name: user.name,
@@ -86,20 +88,18 @@ export class UsersController {
     @Get('by-id/:uuid')
     @HttpCode(HttpStatus.OK)
     async getUserById(@Param('uuid') uuid: string) {
-        // Validate UUID format
         if (!uuid || typeof uuid !== 'string') {
-            throw new BadRequestException('Invalid UUID format');
+            return ApiResponseDto.error('Invalid UUID format', HttpStatus.BAD_REQUEST);
         }
 
-        // Validate UUID pattern
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidPattern.test(uuid)) {
-            throw new BadRequestException('Invalid UUID format');
+            return ApiResponseDto.error('Invalid UUID format', HttpStatus.BAD_REQUEST);
         }
 
         const user = await this.usersService.findByUuid(uuid);
         if (!user) {
-            throw new NotFoundException(`User with UUID "${uuid}" not found`);
+            return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
         }
 
         const formattedUser = {
@@ -123,27 +123,31 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     async deleteUser(@Body() deleteUserDto: UserEmailDto, @Request() req) {
-        await this.usersService.deleteUser(deleteUserDto.email, req.user);
-        return ApiResponseDto.success(null, 'User account deleted successfully');
+        return await this.usersService.deleteUser(deleteUserDto.email, req.user);
     }
 
     @Put('edit')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     async editUser(@Body() editUserDto: EditUserDto, @Request() req) {
-        const updatedUser = await this.usersService.editUser(req.user.email, editUserDto, req.user);
+        const response = await this.usersService.editUser(req.user.email, editUserDto, req.user);
+        if (!response.success || !response.data) {
+            return response;
+        }
+
+        const user = response.data;
         const formattedUser = {
-            uuid: updatedUser.uuid,
-            name: updatedUser.name,
-            surname: updatedUser.surname,
-            areaCode: updatedUser.area_code,
-            phone: updatedUser.phone,
-            website: updatedUser.website,
-            isWhatsappEnabled: updatedUser.is_whatsapp_enabled,
-            isWebsiteEnabled: updatedUser.is_website_enabled,
-            isVcardEnabled: updatedUser.is_vcard_enabled,
-            slug: updatedUser.slug,
-            createdAt: updatedUser.created_at
+            uuid: user.uuid,
+            name: user.name,
+            surname: user.surname,
+            areaCode: user.area_code,
+            phone: user.phone,
+            website: user.website,
+            isWhatsappEnabled: user.is_whatsapp_enabled,
+            isWebsiteEnabled: user.is_website_enabled,
+            isVcardEnabled: user.is_vcard_enabled,
+            slug: user.slug,
+            createdAt: user.created_at
         };
         return ApiResponseDto.success(formattedUser, 'User profile updated successfully');
     }

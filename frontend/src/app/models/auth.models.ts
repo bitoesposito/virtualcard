@@ -14,34 +14,48 @@ export interface LoginRequest {
  * Dati restituiti dal login
  * Contiene il token JWT e i dati essenziali dell'utente
  */
-export interface LoginData {
+export interface LoginResponseData {
   access_token: string;
-  user: Pick<User, 'uuid' | 'email' | 'role'>;
+  user: {
+    uuid: string;
+    email: string;
+    role: string;
+  };
 }
 
 /**
  * Response del login
  * Ritorna i dati di autenticazione
  */
-export type LoginResponse = ApiResponse<LoginData>;
+export type LoginResponse = ApiResponse<LoginResponseData>;
 
 /**
  * Request per il recupero password
  * Richiede solo l'email
  */
-export type RecoverPasswordRequest = Pick<LoginRequest, 'email'>;
+export interface RecoverRequest {
+  email: string;
+}
 
 /**
  * Response del recupero password
  * Ritorna il tempo di validità del token
  */
-export type RecoverPasswordResponse = ApiResponse<{ expiresIn: number }>;
+export interface RecoverResponseData {
+  expiresIn: number; // Duration in seconds (10 minutes)
+}
+
+/**
+ * Response del recupero password
+ * Ritorna il tempo di validità del token
+ */
+export type RecoverResponse = ApiResponse<RecoverResponseData>;
 
 /**
  * Request per la verifica del token
  * Richiede il token e la nuova password
  */
-export interface VerifyTokenRequest {
+export interface VerifyRequest {
   token: string;
   new_password: string;
 }
@@ -50,4 +64,4 @@ export interface VerifyTokenRequest {
  * Response della verifica token
  * Non ritorna dati
  */
-export type VerifyTokenResponse = ApiResponse<null>; 
+export type VerifyResponse = ApiResponse<null>; 

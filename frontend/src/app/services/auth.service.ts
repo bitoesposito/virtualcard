@@ -1,54 +1,73 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { LoginRequest, LoginResponse } from '../models/auth.models';
-import { ApiResponse } from '../models/api.models';
 import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+import { ApiResponse } from '../models/api.models';
+import { LoginRequest, LoginResponse, RecoverRequest, RecoverResponse, VerifyRequest, VerifyResponse } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = `${environment.apiUrl}/auth`;
+  private readonly API_URL = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Effettua il login dell'utente
-   * @param credentials Credenziali di accesso (email e password)
-   * @returns Observable con la risposta del server contenente il token e i dati utente
+   * Authenticates a user with email and password
+   * @param credentials Login credentials
+   * @returns Observable with login response containing JWT token and user data
    */
   login(credentials: LoginRequest): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.API_URL}/login`, credentials);
+    console.log('Attempting login with credentials:', { ...credentials, password: '***' });
+    console.log('API URL:', this.API_URL);
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.API_URL}/auth/login`, credentials);
   }
 
   /**
-   * Salva il token JWT nel localStorage
-   * @param token Token JWT da salvare
+   * Initiates password recovery process
+   * @param email User's email address
+   * @returns Observable with recovery response containing token expiration time
+   */
+  recover(email: RecoverRequest): Observable<ApiResponse<RecoverResponse>> {
+    return this.http.post<ApiResponse<RecoverResponse>>(`${this.API_URL}/auth/recover`, email);
+  }
+  
+  /**
+   * Verifies recovery token and updates password
+   * @param data Token and new password
+   * @returns Observable with verification response
+   */
+  verify(data: VerifyRequest): Observable<ApiResponse<null>> {
+    return this.http.patch<ApiResponse<null>>(`${this.API_URL}/auth/verify`, data);
+  }
+
+  /**
+   * Stores the JWT token in localStorage
+   * @param token JWT token to store
    */
   setToken(token: string): void {
     localStorage.setItem('access_token', token);
   }
 
   /**
-   * Recupera il token JWT dal localStorage
-   * @returns Token JWT salvato o null se non presente
+   * Retrieves the stored JWT token
+   * @returns The stored JWT token or null if not found
    */
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
 
   /**
-   * Rimuove il token JWT dal localStorage
+   * Removes the stored JWT token
    */
-  logout(): void {
+  removeToken(): void {
     localStorage.removeItem('access_token');
   }
 
   /**
-   * Verifica se l'utente è autenticato
-   * @returns true se il token è presente, false altrimenti
+   * Checks if user is authenticated
+   * @returns boolean indicating if user is authenticated
    */
   isAuthenticated(): boolean {
     return !!this.getToken();

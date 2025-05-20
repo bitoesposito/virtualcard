@@ -1,33 +1,30 @@
 import { ApiResponse } from './api.models';
 
 /**
- * Ruoli disponibili nel sistema
+ * Available user roles in the system
  */
-export type UserRole = 'ADMIN' | 'USER';
+export type UserRole = 'admin' | 'user';
 
 /**
- * Interfaccia principale dell'utente
- * Contiene tutti i campi possibili di un utente nel sistema
+ * Base user interface containing all possible user fields
  */
 export interface User {
-  // Campi di sistema
+  // System fields
   uuid: string;
   email: string;
   role: UserRole;
-  isConfigured: boolean;
   createdAt: string;
-  updatedAt: string;
 
-  // Campi personali
+  // Personal fields
   name?: string;
   surname?: string;
   
-  // Campi di contatto
+  // Contact fields
   areaCode?: string;
   phone?: string;
   website?: string;
   
-  // Campi di configurazione
+  // Configuration fields
   slug?: string;
   isVcardEnabled: boolean;
   isWhatsappEnabled: boolean;
@@ -35,45 +32,86 @@ export interface User {
 }
 
 /**
- * Request per la creazione di un nuovo utente
- * Richiede solo l'email, gli altri campi sono opzionali
+ * Public user data interface
+ * Used for public profile endpoints
  */
-export type CreateUserRequest = Pick<User, 'email'>;
+export interface PublicUserData {
+  uuid: string;
+  name?: string;
+  surname?: string;
+  areaCode?: string;
+  phone?: string;
+  website?: string;
+  isVcardEnabled: boolean;
+  isWhatsappEnabled: boolean;
+  isWebsiteEnabled: boolean;
+  slug?: string;
+}
 
 /**
- * Request per la modifica di un utente
- * Tutti i campi sono opzionali e non possono modificare i campi di sistema
+ * Create user request
+ * Only requires email
  */
-export type EditUserRequest = Partial<Omit<User, 
-  'uuid' | 'email' | 'role' | 'isConfigured' | 'createdAt' | 'updatedAt'
->>;
+export interface CreateUserRequest {
+  email: string;
+}
 
 /**
- * Response per la creazione di un utente
- * Ritorna l'email dell'utente creato
+ * Create user response data
  */
-export type CreateUserResponse = ApiResponse<Pick<User, 'email'>>;
+export interface CreateUserResponseData {
+  email: string;
+}
 
 /**
- * Response per la modifica di un utente
- * Ritorna l'utente aggiornato
+ * Create user response
+ */
+export type CreateUserResponse = ApiResponse<CreateUserResponseData>;
+
+/**
+ * Edit user request
+ * All fields are optional
+ */
+export interface EditUserRequest {
+  name?: string;
+  surname?: string;
+  areaCode?: string;
+  phone?: string;
+  website?: string;
+  isWhatsappEnabled?: boolean;
+  isWebsiteEnabled?: boolean;
+  isVcardEnabled?: boolean;
+  slug?: string;
+}
+
+/**
+ * Edit user response
  */
 export type EditUserResponse = ApiResponse<User>;
 
 /**
- * Response per il recupero di un singolo utente
- * Ritorna i dati dell'utente richiesto
+ * Delete user request
  */
-export type GetUserResponse = ApiResponse<User>;
+export interface DeleteUserRequest {
+  email: string;
+}
 
 /**
- * Response per il recupero della lista utenti
- * Ritorna un array di utenti
+ * Delete user response
+ */
+export type DeleteUserResponse = ApiResponse<null>;
+
+/**
+ * List users response
  */
 export type ListUsersResponse = ApiResponse<User[]>;
 
 /**
- * Response per l'eliminazione di un utente
- * Non ritorna dati
+ * Get user by slug response
  */
-export type DeleteUserResponse = ApiResponse<null>;
+export type GetUserBySlugResponse = ApiResponse<PublicUserData>;
+
+/**
+ * Get user by UUID response
+ */
+export type GetUserByUuidResponse = ApiResponse<PublicUserData>;

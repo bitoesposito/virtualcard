@@ -7,7 +7,11 @@ export const routes: Routes = [
         pathMatch: 'full'
     },
     {
-        path: 'login',
-        loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent)
+        path: '',
+        loadChildren: () => import('./public/auth-routing.module').then(m => m.routes)
+    },
+    {
+        path: 'private',
+        loadChildren: () => import('./private/private-routing.module').then(m => m.routes)
     }
 ];

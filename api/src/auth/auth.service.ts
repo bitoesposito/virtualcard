@@ -75,8 +75,11 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<ApiResponseDto<LoginResponse>> {
     try {
+      this.logger.log(`Login attempt for email: ${email}`);
       const userResponse = await this.usersService.findByEmail(email);
+      
       if (!userResponse.success || !userResponse.data) {
+        this.logger.warn(`Login failed: User not found for email ${email}`);
         return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
       }
 
@@ -85,15 +88,19 @@ export class AuthService {
       
       try {
         isPasswordValid = await bcrypt.compare(password, user.password);
+        this.logger.log(`Password validation result for ${email}: ${isPasswordValid}`);
       } catch (e) {
+        this.logger.warn(`Bcrypt comparison failed for ${email}, falling back to direct comparison`);
         isPasswordValid = password === user.password;
         
         if (isPasswordValid) {
+          this.logger.log(`Updating password for ${email} to use bcrypt`);
           await this.usersService.updatePassword(user.uuid, password);
         }
       }
 
       if (!isPasswordValid) {
+        this.logger.warn(`Login failed: Invalid password for email ${email}`);
         return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
       }
 
@@ -112,6 +119,7 @@ export class AuthService {
         }
       };
 
+      this.logger.log(`Login successful for ${email}`);
       return ApiResponseDto.success(result, 'Login successful');
     } catch (error) {
       this.logger.error(`Login failed for user ${email}:`, error);

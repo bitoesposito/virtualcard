@@ -1,0 +1,33 @@
+<main style="max-width: 1200px;" class="m-auto p-3">
+    <header class="flex flex-column gap-2">
+
+        <div class="flex gap-3 w-full justify-content-between align-items-center">
+            <p class="text-xl font-semibold">Dashboard</p>
+            <p-button icon="pi pi-sign-out text-sm" label="Disconnetti" severity="danger" outlined="true" (click)="disconnect()"/>
+        </div>
+
+        <div class="flex gap-2 w-full">
+            <p-inputgroup class="w-full">
+                <input pInputText placeholder="Cerca utente..." class="w-full"/>
+                <p-inputgroup-addon>
+                    <p-button icon="pi pi-search" severity="secondary" variant="text"/>
+                </p-inputgroup-addon>
+            </p-inputgroup>
+            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap" [routerLink]="'/private/new'"/>
+        </div>
+    </header>
+
+    <content>
+        @for (item of users; track $index) {
+            <div *ngFor="let item of users" class="flex w-full border-bottom-1 surface-border py-2 justify-content-between cursor-pointer">
+                <div class="flex flex-column" [routerLink]="['/u', item?.id]">
+                    <p class="font-semibold text-lg">{{item?.email}}</p>
+                    <p class="text-sm">{{item?.username}}</p>
+                </div>
+                <p-button severity="danger" icon="pi pi-trash" outlined="true" (click)="deleteUser(item?.email)"/>
+            </div>
+        } @empty {
+            <p class="text-sm mt-3 text-color-secondary select-none">Nessun utente disponibile</p>
+        }
+    </content>
+</main>

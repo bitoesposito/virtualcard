@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Patch, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Patch, UseGuards, Request, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException } from '@nestjs/common';
 import { LoginDto, ForgotPasswordDto, UpdatePasswordDto, LoginResponse } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -12,6 +12,20 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
+    @UsePipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        exceptionFactory: (errors) => {
+            const messages = errors.map(error => {
+                if (error.constraints) {
+                    return Object.values(error.constraints).join(', ');
+                }
+                return 'Invalid input';
+            });
+            return ApiResponseDto.error(messages.join(', '), HttpStatus.BAD_REQUEST);
+        }
+    }))
     async login(@Body() loginDto: LoginDto): Promise<ApiResponseDto<LoginResponse>> {
         return await this.authService.login(loginDto.email, loginDto.password);
     }

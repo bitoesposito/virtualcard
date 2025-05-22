@@ -80,7 +80,7 @@ export class AuthService {
       
       if (!userResponse.success || !userResponse.data) {
         this.logger.warn(`Login failed: User not found for email ${email}`);
-        return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        return ApiResponseDto.error('Invalid credentials', HttpStatus.OK);
       }
 
       const user = userResponse.data;
@@ -101,7 +101,7 @@ export class AuthService {
 
       if (!isPasswordValid) {
         this.logger.warn(`Login failed: Invalid password for email ${email}`);
-        return ApiResponseDto.error('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        return ApiResponseDto.error('Invalid credentials', HttpStatus.OK);
       }
 
       const payload = { 
@@ -123,7 +123,7 @@ export class AuthService {
       return ApiResponseDto.success(result, 'Login successful');
     } catch (error) {
       this.logger.error(`Login failed for user ${email}:`, error);
-      return ApiResponseDto.error('An error occurred during login', HttpStatus.INTERNAL_SERVER_ERROR);
+      return ApiResponseDto.error('An error occurred during login', HttpStatus.OK);
     }
   }
 

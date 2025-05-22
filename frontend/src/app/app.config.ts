@@ -1,12 +1,13 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 
 import { routes } from './app.routes';
 import { definePreset } from '@primeng/themes';
+import { errorInterceptor } from './interceptors/error.interceptor';
 
 const theme = definePreset(Aura, {
   primitive: {
@@ -676,6 +677,8 @@ export const appConfig: ApplicationConfig = {
         preset: theme
       }
     }),
-    provideHttpClient()
+    provideHttpClient(
+      withInterceptors([errorInterceptor])
+    )
   ]
 };

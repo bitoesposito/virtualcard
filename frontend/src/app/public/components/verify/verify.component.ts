@@ -91,7 +91,7 @@ export class VerifyComponent {
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'An error occurred while updating password');
+        this.notificationService.handleWarning('An error occurred while updating password');
       },
       complete: () => {
         this.loading = false;

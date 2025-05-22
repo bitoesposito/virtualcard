@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 
 async function generateHash() {
-    const password = ''; // la password che vuoi hashare
+    const password = 'Password1!'; // la password che vuoi hashare
     const saltRounds = 12; // lo stesso salt rounds usato nel progetto
 
     try {

@@ -13,9 +13,9 @@ export class LoginDto {
     @MinLength(8, { message: 'Password must be at least 8 characters' })
     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
     @Matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
         {
-            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
+            message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?])'
         }
     )
     password: string;
@@ -47,9 +47,9 @@ export class UpdatePasswordDto {
     @MinLength(8, { message: 'Password must be at least 8 characters' })
     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
     @Matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
         {
-            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
+            message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?])'
         }
     )
     new_password: string;
@@ -59,9 +59,9 @@ export class UpdatePasswordDto {
     @MinLength(8, { message: 'Password must be at least 8 characters' })
     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
     @Matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
         {
-            message: 'Password must include an uppercase letter, a lowercase letter, a number, and a special character'
+            message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?])'
         }
     )
     confirm_password: string;

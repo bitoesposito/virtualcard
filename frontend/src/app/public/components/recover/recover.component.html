@@ -2,7 +2,7 @@
 
 <main class="h-screen w-full flex align-items-center justify-content-center">
   <content class="flex flex-column gap-3 w-15rem">
-    <p class="text-2xl font-semibold">Recupera password</p>
+    <p class="text-2xl font-semibold">Recupera Password</p>
 
     <form [formGroup]="form" (ngSubmit)="recover()" class="flex flex-column gap-2">
       <div class="flex gap-1 flex-column">
@@ -13,8 +13,8 @@
       <small class="w-full text-color-secondary text-xs">Se esistente nel sistema, ti verrà inviata una mail con un link per recuperare la password.</small>
 
       <div class="flex gap-2 flex-column mt-2">
-        <p-button label="Recupera password" styleClass="w-full" type="submit" [disabled]="!form.valid" />
-        <p-button class="text-center" label="annulla" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/login']" />
+        <p-button label="Invia richiesta" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading" />
+        <p-button class="text-center" label="Torna al login" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/login']" [disabled]="loading" />
       </div>
     </form>
 

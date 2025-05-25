@@ -12,6 +12,7 @@ RUN npm install && \
 COPY tsconfig*.json ./
 COPY . .
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start", "&&", "npm", "i"]
+
 
 EXPOSE 3000

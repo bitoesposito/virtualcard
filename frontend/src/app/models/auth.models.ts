@@ -58,6 +58,7 @@ export type RecoverResponse = ApiResponse<RecoverResponseData>;
 export interface VerifyRequest {
   token: string;
   new_password: string;
+  confirm_password: string;
 }
 
 /**

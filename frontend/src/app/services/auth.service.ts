@@ -27,8 +27,8 @@ export class AuthService {
    * @param email User's email address
    * @returns Observable with recovery response containing token expiration time
    */
-  recover(email: RecoverRequest): Observable<ApiResponse<RecoverResponse>> {
-    return this.http.post<ApiResponse<RecoverResponse>>(`${this.API_URL}/auth/recover`, email);
+  recoverPassword(email: string): Observable<ApiResponse<RecoverResponse>> {
+    return this.http.post<ApiResponse<RecoverResponse>>(`${this.API_URL}/auth/recover`, { email });
   }
   
   /**
@@ -36,7 +36,7 @@ export class AuthService {
    * @param data Token and new password
    * @returns Observable with verification response
    */
-  verify(data: VerifyRequest): Observable<ApiResponse<null>> {
+  verifyToken(data: VerifyRequest): Observable<ApiResponse<null>> {
     return this.http.patch<ApiResponse<null>>(`${this.API_URL}/auth/verify`, data);
   }
 

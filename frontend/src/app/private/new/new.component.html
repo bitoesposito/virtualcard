@@ -1,0 +1,21 @@
+<p-toast class="absolute" />
+
+<main class="max-w-15rem m-auto mt-5">
+	<form [formGroup]="form" (ngSubmit)="create()" class="flex flex-column gap-2 pb-4">
+		<p class="text-2xl font-semibold mb-2">Crea utente</p>
+
+		<div class="flex gap-1 flex-column">
+			<label for="email">Indirizzo mail</label>
+			<input formControlName="email" type="text" pInputText placeholder="Inserisci l'indirizzo mail" />
+			<small class="text-color-secondary" *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">L'email è obbligatoria</small>
+			<small class="text-color-secondary" *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">Inserisci un indirizzo email valido</small>
+		</div>
+
+		<small class="text-color-secondary">Una volta creato, l'utente riceverà un'email di verifica col quale potrà accedere e configurare il proprio profilo personale.</small>
+
+		<div class="flex gap-2 flex-column mt-2">
+			<p-button label="Crea utente" fluid="true" type="submit" [disabled]="!form.valid || loading" [loading]="loading" />
+			<p-button label="annulla" fluid="true" outlined="true" severity="secondary" [routerLink]="['/private/dashboard']" [disabled]="loading"/>
+		</div>
+	</form>
+</main>

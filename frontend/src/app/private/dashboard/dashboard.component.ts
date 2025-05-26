@@ -7,9 +7,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
 import { Router, RouterModule } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { jwtDecode } from 'jwt-decode';
 import { NotificationService } from '../../services/notification.service';
+import { ToastModule } from 'primeng/toast';
+import { UserService } from '../../services/user.service';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,11 +24,14 @@ import { NotificationService } from '../../services/notification.service';
     CommonModule,
     FormsModule,
     PaginatorModule,
-    RouterModule
+    RouterModule,
+    ToastModule,
+    ConfirmDialogModule
   ],
   providers: [
     MessageService,
-    NotificationService
+    NotificationService,
+    ConfirmationService
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -38,10 +44,39 @@ export class DashboardComponent {
 
   constructor(
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private userService: UserService,
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
   ) {
     this.setCurrentUserEmail();
     this.getUsers();
+  }
+
+  deleteUserDialog(event: Event, email: string) {
+    this.confirmationService.confirm({
+        target: event.target as EventTarget,
+        message: 'Sei sicuro di voler eliminare l\'utente?',
+        header: 'Elimina utente',
+        closable: true,
+        closeOnEscape: true,
+        icon: 'pi pi-exclamation-circle',
+        rejectButtonProps: {
+            label: 'annulla',
+            severity: 'secondary',
+            outlined: true,
+        },
+        acceptButtonProps: {
+            label: 'Elimina',
+            severity: 'danger'
+        },
+        accept: () => {
+            this.deleteUser(email);
+        },
+        reject: () => {
+            // User cancelled the deletion
+        },
+    });
   }
 
   setCurrentUserEmail() {
@@ -53,11 +88,38 @@ export class DashboardComponent {
   }
   
   getUsers() {
+    this.userService.getUsers().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.users = response.data || [];
+        } else {
+          this.notificationService.showMessage('error', response.message || 'Errore nel recupero degli utenti');
+        }
+      },
+      error: (error) => {
+        this.notificationService.handleError(error, 'Errore nel recupero degli utenti');
+      }
+    });
   }
 
   deleteUser(email: string) {
+    this.userService.deleteUser(email).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.notificationService.showMessage('success', 'Utente eliminato con successo');
+          this.getUsers(); // Refresh the list
+        } else {
+          this.notificationService.showMessage('error', response.message || 'Errore nell\'eliminazione dell\'utente');
+        }
+      },
+      error: (error) => {
+        this.notificationService.handleError(error, 'Errore nell\'eliminazione dell\'utente');
+      }
+    });
   }
 
   disconnect() {
+    localStorage.removeItem('access_token');
+    this.router.navigate(['/login']);
   }
 }

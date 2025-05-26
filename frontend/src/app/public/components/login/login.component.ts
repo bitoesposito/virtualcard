@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -14,6 +14,7 @@ import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
 import { LoginResponseData } from '../../../models/auth.models';
 import { ApiResponse } from '../../../models/api.models';
+import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-login',
@@ -37,7 +38,7 @@ import { ApiResponse } from '../../../models/api.models';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loading = false;
 
   form: FormGroup = new FormGroup({
@@ -52,7 +53,40 @@ export class LoginComponent {
     private notificationService: NotificationService,
     private router: Router,
     private authService: AuthService
-  ) { }
+  ) {}
+
+  ngOnInit() {
+    this.checkTokenAndRedirect();
+  }
+
+  private checkTokenAndRedirect() {
+    const token = localStorage.getItem('access_token');
+    console.log('Checking token:', token);
+
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        console.log('Decoded token:', decoded);
+
+        if (decoded.exp && Date.now() < decoded.exp * 1000) {
+          console.log('Token is valid, redirecting...');
+          if (decoded.role === 'admin') {
+            this.router.navigate(['/private/dashboard']);
+          } else {
+            this.router.navigate(['/private/edit']);
+          }
+        } else {
+          console.log('Token expired');
+          localStorage.removeItem('access_token');
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        localStorage.removeItem('access_token');
+      }
+    } else {
+      console.log('No token found');
+    }
+  }
 
   get email(): FormControl {
     return this.form.get('email') as FormControl
@@ -84,7 +118,12 @@ export class LoginComponent {
           
           if (response.success && response.data) {
             this.authService.setToken(response.data.access_token);
-            this.router.navigate(['/dashboard']);
+            // Redirect based on user role
+            if (response.data.user.role === 'admin') {
+              this.router.navigate(['/private/dashboard']);
+            } else {
+              this.router.navigate(['/private/edit']);
+            }
           }
         },
         error: (error) => {

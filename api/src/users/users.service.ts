@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { ApiResponseDto } from '../common/dto/api-response.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService
   ) {}
 
   async createUser(createUserDto: UserEmailDto): Promise<ApiResponseDto<{ email: string }>> {
@@ -57,11 +59,8 @@ export class UsersService {
         { expiresIn: '1h' }
       );
 
-      // Log token to console
-      this.logger.log(`Verification token for ${user.email}: ${token}`);
-
-      const baseUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-      const verificationUrl = `${baseUrl}/verify?token=${token}`;
+      // Send verification email
+      await this.mailService.sendEmail(user.email, token, 'verification');
 
       return ApiResponseDto.success({ email: user.email }, 'User created successfully');
     } catch (error) {

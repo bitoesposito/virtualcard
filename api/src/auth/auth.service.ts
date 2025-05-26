@@ -144,9 +144,8 @@ export class AuthService {
       };
       
       const token = this.jwtService.sign(payload, { expiresIn: '10m' });
-      const url = `http://localhost:3000/verify?token=${token}`;
       
-      await this.mailService.sendPasswordResetEmail(user.email, url);
+      await this.mailService.sendEmail(user.email, token, 'password-reset');
 
       return ApiResponseDto.success(
         { expiresIn: 600 },

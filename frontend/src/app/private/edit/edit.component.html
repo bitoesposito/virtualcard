@@ -1,0 +1,97 @@
+<p-toast class="absolute" />
+
+<main class="max-w-15rem m-auto mt-5">
+	<form [formGroup]="form" (ngSubmit)="editProfile()" class="flex flex-column gap-2 pb-4">
+		<p class="text-2xl font-semibold">Modifica profilo</p>
+
+		<div class="flex gap-1 flex-column">
+			<label for="name">Nome</label>
+			<input formControlName="name" type="text" pInputText placeholder="Inserisci il nome" />
+		</div>
+
+		<div class="flex gap-1 flex-column">
+			<label for="surname">Cognome</label>
+			<input formControlName="surname" type="text" pInputText placeholder="Inserisci il cognome" />
+		</div>
+
+		<!-- <div class="flex gap-1 flex-column">
+			<label for="email">Indirizzo email<i class="pi pi-info-circle ml-1 text-xs cursor-pointer" pTooltip="Non è possibile modificare la mail poiché utilizzata per accedere al tuo account"></i></label>
+			<input disabled="true" type="email" pInputText placeholder="Inserisci la mail"/>
+		</div> -->
+
+
+		<div class="flex gap-1 flex-column">
+			<label for="phone">Numero di telefono</label>
+			<div class="flex gap-1">
+				<div class="flex gap-1 flex-column">
+					<p-select formControlName="area_code" [options]="area_code" optionLabel="label" optionValue="value"
+						[placeholder]="selectedAreaCode ? selectedAreaCode : '+39'" class="w-min h-full" fluid="true"
+						[filter]="true" filterBy="label" [panelStyleClass]="'w-10rem'">
+						<ng-template let-option pTemplate="item">
+							<div class="flex items-center gap-2">
+								<img [src]="option.flag" style="width: 22px" />
+								<div>{{ option.label }}</div>
+							</div>
+						</ng-template>
+						<ng-template let-selected pTemplate="selectedItem">
+							<div>{{ selected.value }}</div>
+						</ng-template>
+					</p-select>
+
+				</div>
+				<input fluid="true" formControlName="phone" type="tel" pInputText
+					placeholder="Inserisci il numero di telefono" />
+			</div>
+		</div>
+
+		<div class="flex gap-1 flex-column">
+			<label for="website">Sito web</label>
+			<input formControlName="website" type="url" pInputText placeholder="Inserisci il tuo sito web" />
+		</div>
+
+		<div class="flex gap-1">
+			<p-checkbox inputId="websiteSelect" formControlName="is_website_selected" binary="true" />
+			<div class="flex flex-column">
+				<label for="websiteSelect" class="ml-2">
+					Abilita il tasto per il sito web
+					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per visitare
+						il tuo sito web</p>
+				</label>
+			</div>
+		</div>
+
+		<div class="flex gap-1">
+			<p-checkbox inputId="whatsappSelect" formControlName="is_whatsapp_selected" binary="true" />
+			<div class="flex flex-column">
+				<label for="whatsappSelect" class="ml-2">
+					Abilita tasto WhatsApp!
+					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per inviare un
+						messaggio WhatsApp al numero associato</p>
+				</label>
+			</div>
+		</div>
+
+		<div class="flex gap-1">
+			<p-checkbox inputId="vCardSelect" formControlName="is_vcard_selected" binary="true" />
+			<div class="flex flex-column">
+				<label for="vCardSelect" class="ml-2">
+					Abilita tasto vCard
+					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per salvare su dispositivi
+						mobile i tuoi dati di contatto</p>
+				</label>
+			</div>
+		</div>
+
+		<div class="flex gap-2 flex-column mt-2">
+			<p-button label="Aggiorna profilo" fluid="true" type="submit" [disabled]="!form.valid" />
+			<div class="flex gap-2 w-full">
+				<p-button icon="pi pi-user text-sm" label="Vai al profilo" severity="secondary" outlined="true" [routerLink]="'/u/' + userData.principal?.username" fluid="true" class="w-full"/>
+				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}"/>
+			</div>
+			<p-button label="Stampa biglietto da visita" icon="pi pi-print text-xs" severity="secondary" outlined="true" fluid="true" [disabled]="!form.valid" />
+			<p-button label="Salva QR code" icon="pi pi-qrcode text-xs" severity="secondary" outlined="true"
+				fluid="true" [disabled]="!form.valid" />
+			<p-button label="Disconnettiti" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="onLogout()" />
+		</div>
+	</form>
+</main>

@@ -59,22 +59,18 @@ export class LoginComponent implements OnInit {
 
   private checkTokenAndRedirect() {
     const token = localStorage.getItem('access_token');
-    console.log('Checking token:', token);
 
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        console.log('Decoded token:', decoded);
 
         if (decoded.exp && Date.now() < decoded.exp * 1000) {
-          console.log('Token is valid, redirecting...');
           if (decoded.role === 'admin') {
             this.router.navigate(['/private/dashboard']);
           } else {
             this.router.navigate(['/private/edit']);
           }
         } else {
-          console.log('Token expired');
           localStorage.removeItem('access_token');
         }
       } catch (error) {
@@ -82,7 +78,6 @@ export class LoginComponent implements OnInit {
         localStorage.removeItem('access_token');
       }
     } else {
-      console.log('No token found');
     }
   }
 

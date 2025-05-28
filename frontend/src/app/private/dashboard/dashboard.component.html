@@ -1,35 +1,46 @@
-<p-toast class="absolute"/>
+<p-toast class="absolute" />
 
-<main style="max-width: 1200px;" class="m-auto flex flex-column p-3 gap-3">
+<nav class="px-3 mt-3 text-color w-full flex justify-content-between align-items-center">
+    <div>
+        <img src="./logo-full.svg" alt="vcarder_logo" height="50" />
+    </div>
+    <div class="flex gap-2 align-items-center">
+        <div class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none">{{this.currentUserEmail}}</div>
+
+        <i class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline"  [pTooltip]="this.currentUserEmail" tooltipPosition="bottom"></i>
+
+        <p-button icon="pi pi-sign-out text-sm" label="Disconnetti"  severity="secondary" text="true" (click)="disconnect()"/>
+    </div>
+</nav>
+
+<main style="max-width: 1200px;" class="m-auto flex flex-column p-3 gap-3 mt-2">
     <header class="flex flex-column gap-2">
 
-        <div class="flex gap-3 w-full justify-content-between align-items-center">
-            <p class="text-xl font-semibold">Dashboard</p>
-            <p-button icon="pi pi-sign-out text-sm" label="Disconnetti" severity="secondary" text="true" (click)="disconnect()"/>
-        </div>
+        <p class="text-2xl font-semibold">Dashboard</p>
 
         <div class="flex gap-2 w-full">
             <p-inputgroup class="w-full">
-                <input pInputText placeholder="Cerca utente..." class="w-full"/>
+                <input pInputText placeholder="Cerca utente..." class="w-full" />
                 <p-inputgroup-addon>
-                    <p-button icon="pi pi-search" severity="secondary" variant="text" severity="primary"/>
+                    <p-button icon="pi pi-search" severity="secondary" variant="text" severity="primary" />
                 </p-inputgroup-addon>
             </p-inputgroup>
-            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap" [routerLink]="['/private/new']"/>
+            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap"
+                [routerLink]="['/private/new']" />
         </div>
     </header>
 
     <content>
         @for (item of users; track $index) {
-            <div class="flex w-full border-bottom-1 surface-border py-2 justify-content-between cursor-pointer">
-                <div class="flex flex-column" [routerLink]="['/private', item?.uuid]">
-                    <p class="font-semibold text-lg">{{item?.email}}</p>
-                    <p class="text-sm">{{item?.username}}</p>
-                </div>
-                <p-button severity="danger" icon="pi pi-trash" text="true" (click)="deleteUserDialog($event, item?.email)"/>
+        <div class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center cursor-pointer">
+            <div class="flex flex-column" [routerLink]="['/private', item?.uuid]">
+                <p class="font-semibold text-lg">{{item?.email}}</p>
+                <p class="text-sm">{{item?.username}}</p>
             </div>
+            <p-button severity="danger" icon="pi pi-trash" text="true" (click)="deleteUserDialog($event, item?.email)" />
+        </div>
         } @empty {
-            <p class="text-sm mt-3 text-color-secondary select-none">Nessun utente disponibile</p>
+        <p class="text-sm mt-3 text-color-secondary select-none">Nessun utente disponibile</p>
         }
     </content>
 </main>

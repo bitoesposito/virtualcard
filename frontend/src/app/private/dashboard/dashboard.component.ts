@@ -14,6 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { UserEmail } from '../../models/user.models';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,7 +28,8 @@ import { UserEmail } from '../../models/user.models';
     PaginatorModule,
     RouterModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    TooltipModule
   ],
   providers: [
     MessageService,
@@ -41,7 +43,7 @@ export class DashboardComponent {
 
   users: any[] = [];
   paginator: any[] = [];
-  currentUserEmail: string | null = null;
+  currentUserEmail: string = ''
 
   constructor(
     private notificationService: NotificationService,

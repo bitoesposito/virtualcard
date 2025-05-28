@@ -11,7 +11,6 @@ import { ToastModule } from 'primeng/toast';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
-import { ApiResponse } from '../../../models/api.models';
 import { VerifyRequest } from '../../../models/auth.models';
 
 @Component({
@@ -95,7 +94,7 @@ export class VerifyComponent implements OnInit {
         finalize(() => this.loading = false)
       )
       .subscribe({
-        next: (response: ApiResponse<null>) => {
+        next: (response) => {
           this.notificationService.handleSuccess('Password has been updated successfully');
           this.router.navigate(['/login']);
         },

@@ -12,8 +12,6 @@ import { ToastModule } from 'primeng/toast';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
-import { LoginResponseData } from '../../../models/auth.models';
-import { ApiResponse } from '../../../models/api.models';
 import { jwtDecode } from 'jwt-decode';
 
 @Component({

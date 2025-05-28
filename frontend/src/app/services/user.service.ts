@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models/api.models';
+import { UserDetails, UserEmail } from '../models/user.models';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +18,8 @@ export class UserService {
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
-  getUsers(): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.API_URL}/users/list`, {
+  getUsers(): Observable<ApiResponse<UserDetails[]>> {
+    return this.http.get<ApiResponse<UserDetails[]>>(`${this.API_URL}/users/list`, {
       headers: this.getHeaders()
     });
   }
@@ -26,12 +27,12 @@ export class UserService {
   deleteUser(email: string): Observable<ApiResponse<null>> {
     return this.http.delete<ApiResponse<null>>(`${this.API_URL}/users/delete`, {
       headers: this.getHeaders(),
-      body: { email }
+      body: {email}
     });
   }
 
-  createUser(email: string): Observable<ApiResponse<{ email: string }>> {
-    return this.http.post<ApiResponse<{ email: string }>>(`${this.API_URL}/users/create`, { email }, {
+  createUser(email: string): Observable<ApiResponse<UserEmail>> {
+    return this.http.post<ApiResponse<UserEmail>>(`${this.API_URL}/users/create`, {email}, {
       headers: this.getHeaders()
     });
   }

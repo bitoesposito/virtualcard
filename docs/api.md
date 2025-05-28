@@ -141,7 +141,8 @@ Verifica il token di recupero password e, se valido, permette l'aggiornamento de
 
 reqBody: {
   "token": string,
-  "new_password": string
+  "new_password": string;
+  "conirm_password": string;
 }
 
 ### Risposte

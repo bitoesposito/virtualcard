@@ -13,6 +13,7 @@ import { NotificationService } from '../../services/notification.service';
 import { ToastModule } from 'primeng/toast';
 import { UserService } from '../../services/user.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { UserEmail } from '../../models/user.models';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,8 +47,7 @@ export class DashboardComponent {
     private notificationService: NotificationService,
     private router: Router,
     private userService: UserService,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private confirmationService: ConfirmationService
   ) {
     this.setCurrentUserEmail();
     this.getUsers();

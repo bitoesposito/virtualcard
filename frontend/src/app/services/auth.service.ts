@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api.models';
-import { LoginRequest, LoginResponseData, RecoverRequest, RecoverResponse, VerifyRequest, VerifyResponse } from '../models/auth.models';
+import { LoginRequest, LoginResponseData, RecoverResponse, VerifyRequest } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'

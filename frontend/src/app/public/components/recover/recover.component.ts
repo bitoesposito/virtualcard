@@ -10,7 +10,6 @@ import { ToastModule } from 'primeng/toast';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
-import { ApiResponse } from '../../../models/api.models';
 
 @Component({
   selector: 'app-recover',

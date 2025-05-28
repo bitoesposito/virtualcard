@@ -1,6 +1,6 @@
 <p-toast class="absolute"/>
 
-<main style="max-width: 1200px;" class="m-auto p-3">
+<main style="max-width: 1200px;" class="m-auto flex flex-column p-3 gap-3">
     <header class="flex flex-column gap-2">
 
         <div class="flex gap-3 w-full justify-content-between align-items-center">
@@ -22,7 +22,7 @@
     <content>
         @for (item of users; track $index) {
             <div class="flex w-full border-bottom-1 surface-border py-2 justify-content-between cursor-pointer">
-                <div class="flex flex-column" [routerLink]="['/u', item?.id]">
+                <div class="flex flex-column" [routerLink]="['/private', item?.uuid]">
                     <p class="font-semibold text-lg">{{item?.email}}</p>
                     <p class="text-sm">{{item?.username}}</p>
                 </div>

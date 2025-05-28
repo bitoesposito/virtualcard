@@ -74,13 +74,11 @@ export class UsersController {
             surname: user.surname,
             areaCode: user.area_code,
             phone: user.phone,
-            email: user.email,
             website: user.website,
             isWhatsappEnabled: user.is_whatsapp_enabled,
             isWebsiteEnabled: user.is_website_enabled,
             isVcardEnabled: user.is_vcard_enabled,
-            slug: user.slug,
-            createdAt: user.created_at
+            slug: user.slug
         };
         return ApiResponseDto.success(formattedUser, 'User profile retrieved successfully');
     }

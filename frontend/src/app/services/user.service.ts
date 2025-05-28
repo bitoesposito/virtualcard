@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models/api.models';
-import { UserDetails, UserEmail } from '../models/user.models';
+import { User, UserDetails, UserEmail } from '../models/user.models';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +22,14 @@ export class UserService {
     return this.http.get<ApiResponse<UserDetails[]>>(`${this.API_URL}/users/list`, {
       headers: this.getHeaders()
     });
+  }
+
+  getPublicUser(slug: string): Observable<ApiResponse<User>> {
+    return this.http.get<ApiResponse<User>>(`${this.API_URL}/users/${slug}`)
+  }
+
+  getUser(uuid: string): Observable<ApiResponse<UserDetails>> {
+    return this.http.get<ApiResponse<UserDetails>>(`${this.API_URL}/users/by-id/${uuid}`)
   }
 
   deleteUser(email: string): Observable<ApiResponse<null>> {

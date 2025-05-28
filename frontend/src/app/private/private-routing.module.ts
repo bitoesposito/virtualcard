@@ -5,6 +5,7 @@ import { EditComponent } from './edit/edit.component';
 import { NewComponent } from './new/new.component';
 import { authGuard } from '../guards/auth.guard';
 import { roleGuard } from '../guards/role.guard';
+import { UserProfileComponent } from '../public/components/user-profile/user-profile.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,11 @@ const routes: Routes = [
   {
     path: 'new',
     component: NewComponent,
+    canActivate: [authGuard, roleGuard]
+  },
+  {
+    path: ':uuid',
+    component: UserProfileComponent,
     canActivate: [authGuard, roleGuard]
   },
   {

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { RecoverComponent } from './components/recover/recover.component';
 import { VerifyComponent } from './components/verify/verify.component';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 const routes: Routes = [
   {
@@ -17,10 +18,10 @@ const routes: Routes = [
     path: 'verify',
     component: VerifyComponent
   },
-  // {
-  //   path: 'u/:username',
-  //   component: UserProfileComponent
-  // },
+  {
+    path: 'u/:slug',
+    component: UserProfileComponent
+  },
   {
     path: '**',
     redirectTo: 'login',

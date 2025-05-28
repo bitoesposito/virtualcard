@@ -8,6 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { PublicRoutingModule } from './public-routing.module';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 @NgModule({
   declarations: [],
@@ -17,7 +18,7 @@ import { PublicRoutingModule } from './public-routing.module';
     LoginComponent,
     RecoverComponent,
     VerifyComponent,
-    // UserProfileComponent,
+    UserProfileComponent,
     ReactiveFormsModule,
     FormsModule,
     InputTextModule,

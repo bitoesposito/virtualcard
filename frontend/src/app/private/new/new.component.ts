@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
@@ -13,6 +13,7 @@ import { NotificationService } from '../../services/notification.service';
 import { UserService } from '../../services/user.service';
 import { finalize } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-new',
@@ -27,11 +28,13 @@ import { CommonModule } from '@angular/common';
     TooltipModule,
     SelectModule,
     ImageModule,
-    CommonModule
+    CommonModule,
+    ConfirmDialogModule
   ],
   providers: [
     NotificationService,
-    MessageService
+    MessageService,
+    ConfirmationService
   ],
   templateUrl: './new.component.html',
   styleUrl: './new.component.scss'
@@ -40,13 +43,14 @@ export class NewComponent implements OnInit {
   loading = false;
 
   form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email])
+    email: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)])
   });
 
   constructor(
     private userService: UserService,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private confirmationService: ConfirmationService
   ){}
 
   ngOnInit(): void {
@@ -76,5 +80,32 @@ export class NewComponent implements OnInit {
           this.notificationService.handleError(error, 'An error occurred while creating the user');
         }
       });
+  }
+
+  confirmCreationDialog(event: Event) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: 'Conferma di voler procedere con la creazione',
+      header: 'Crea utente',
+      closable: true,
+      closeOnEscape: true,
+      icon: 'pi pi-exclamation-circle',
+      rejectButtonProps: {
+        label: 'annulla',
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptButtonProps: {
+        label: 'Conferma',
+      },
+      accept: () => {
+        this.create()
+        setTimeout(() => {
+          this.router.navigate(['/private/dashboard'])
+        }, 2000)
+      },
+      reject: () => {
+      },
+    });
   }
 }

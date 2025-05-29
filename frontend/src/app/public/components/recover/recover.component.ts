@@ -35,7 +35,7 @@ export class RecoverComponent {
   loading = false;
 
   form: FormGroup = new FormGroup({
-    email: new FormControl(null, [Validators.required, Validators.pattern(/^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i)])
+    email: new FormControl(null, [Validators.required, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)])
   });
 
   constructor(
@@ -63,8 +63,10 @@ export class RecoverComponent {
       )
       .subscribe({
         next: () => {
-          this.notificationService.handleSuccess('If the email address is registered, you will receive a password reset link');
-          this.router.navigate(['/login']);
+          this.notificationService.handleSuccess('If email is registered, will receive reset link');
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
         },
         error: (error: any) => {
           this.notificationService.handleError(error, 'An error occurred during password recovery');

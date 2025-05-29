@@ -5,7 +5,7 @@
         <img src="./logo-full.svg" alt="vcarder_logo" height="50" />
     </div>
     <div class="flex gap-2 align-items-center">
-        <div class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none">{{this.currentUserEmail}}</div>
+        <div class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none"><i class="pi pi-user mr-2"></i>{{this.currentUserEmail}}</div>
 
         <i class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline"  [pTooltip]="this.currentUserEmail" tooltipPosition="bottom"></i>
 
@@ -25,8 +25,9 @@
                     <p-button icon="pi pi-search" severity="secondary" variant="text" severity="primary" />
                 </p-inputgroup-addon>
             </p-inputgroup>
-            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap"
-                [routerLink]="['/private/new']" />
+
+            <!-- todo: al posto di fare il routing devo inserire il dialog così non giro per pagine -->
+            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap" [routerLink]="['/private/new']" />
         </div>
     </header>
 

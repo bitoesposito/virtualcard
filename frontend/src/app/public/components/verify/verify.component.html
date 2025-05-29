@@ -9,10 +9,34 @@
 		
 		<p class="text-2xl font-semibold">Reimposta Password</p>
 
-		<form [formGroup]="form" (ngSubmit)="resetPassword()" class="flex flex-column gap-2">
+		<form [formGroup]="form" (ngSubmit)="confirmPasswordDialog($event)" class="flex flex-column gap-2 mb-2">
 			<div class="flex gap-1 flex-column">
 				<label for="password">Nuova Password</label>
-				<p-password formControlName="password" id="password" type="password" placeholder="Inserisci la nuova password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="true"/>
+				<p-password formControlName="password" id="password" type="password" placeholder="Inserisci la nuova password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="true" weakLabel="Debole" mediumLabel="Media" strongLabel="Forte" promptLabel="Inserisci una password">
+					<ng-template #header>
+						<div class="font-semibold text-xm mb-4">Seleziona una password</div>
+					</ng-template>
+					<ng-template #footer>
+						<p-divider />
+						<ul class="pl-2 ml-2 my-0 leading-normal">
+							<li [class.text-red-500]="password.value && !hasLowerCase(password.value)">
+								Almeno una minuscola
+							</li>
+							<li [class.text-red-500]="password.value && !hasUpperCase(password.value)">
+								Almeno una maiuscola
+							</li>
+							<li [class.text-red-500]="password.value && !hasNumber(password.value)">
+								Almeno un numero
+							</li>
+							<li [class.text-red-500]="password.value && !hasMinLength(password.value)">
+								Minimo 8 caratteri
+							</li>
+							<li [class.text-red-500]="password.value && !hasSymbol(password.value)">
+								Almeno un simbolo
+							</li>
+						</ul>
+					</ng-template>
+				</p-password>
 			</div>
 
 			<div class="flex gap-1 flex-column">
@@ -21,10 +45,11 @@
 			</div>
 
 			<div class="flex gap-2 flex-column mt-2">
-				<p-button label="Reimposta Password" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading"/>
+				<p-button type="submit" label="Reimposta Password" styleClass="w-full" [disabled]="!form.valid || loading" [loading]="loading"/>
 				<p-button class="text-center" label="Torna al login" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/login']" [disabled]="loading"/>
 			</div>
 		</form>
-
 	</content>
 </main>
+
+<p-confirmdialog />

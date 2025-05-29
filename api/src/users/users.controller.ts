@@ -50,6 +50,27 @@ export class UsersController {
         return ApiResponseDto.success(formattedUsers, 'Users list retrieved successfully');
     }
 
+    @Get('check-slug/:slug')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async checkSlugAvailability(@Param('slug') slug: string, @Request() req) {
+        if (!slug || typeof slug !== 'string') {
+            return ApiResponseDto.error('Invalid slug format', HttpStatus.BAD_REQUEST);
+        }
+
+        const trimmedSlug = slug.trim();
+        if (trimmedSlug === '' || trimmedSlug.toLowerCase() === 'null' || trimmedSlug.toLowerCase() === 'undefined') {
+            return ApiResponseDto.error('Invalid slug value', HttpStatus.BAD_REQUEST);
+        }
+
+        // Se lo slug è lo stesso dell'utente corrente, è sempre disponibile
+        if (req.user.slug === trimmedSlug) {
+            return ApiResponseDto.success({ available: true }, 'Slug availability checked successfully');
+        }
+
+        return await this.usersService.checkSlugAvailability(trimmedSlug);
+    }
+
     @Get(':slug')
     @HttpCode(HttpStatus.OK)
     async getUserBySlug(@Param('slug') slug: string) {
@@ -68,6 +89,13 @@ export class UsersController {
         }
 
         const user = response.data;
+        
+        // Verifica che l'utente abbia abilitato la visibilità pubblica
+        if (!user.is_configured) {
+            return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
+        }
+
+        // Restituisci solo i dati pubblici
         const formattedUser = {
             uuid: user.uuid,
             name: user.name,
@@ -100,6 +128,12 @@ export class UsersController {
             return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
         }
 
+        // Verifica che l'utente abbia abilitato la visibilità pubblica
+        if (!user.is_configured) {
+            return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
+        }
+
+        // Restituisci solo i dati pubblici
         const formattedUser = {
             uuid: user.uuid,
             name: user.name,

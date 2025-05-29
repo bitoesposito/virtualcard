@@ -1,15 +1,19 @@
 <p-toast class="absolute" />
 
-<nav class="px-3 mt-3 text-color w-full flex justify-content-between align-items-center m-auto"  style="max-width: 1200px;">
+<nav class="px-3 mt-3 text-color w-full flex justify-content-between align-items-center m-auto"
+    style="max-width: 1200px;">
     <div>
         <img src="./logo-full.svg" alt="vcarder_logo" height="50" />
     </div>
     <div class="flex gap-2 align-items-center">
-        <div class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none"><i class="pi pi-user mr-2"></i>{{this.currentUserEmail}}</div>
+        <div [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none cursor-pointer" pTooltip="Modifica il tuo profilo" tooltipPosition="bottom">
+            <i class="pi pi-user mr-2"></i>{{this.currentUserEmail}}
+        </div>
 
-        <i class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline"  [pTooltip]="this.currentUserEmail" tooltipPosition="bottom"></i>
+        <i [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline cursor-pointer" pTooltip="Modifica il tuo profilo" tooltipPosition="bottom"></i>
 
-        <p-button icon="pi pi-sign-out text-sm" label="Disconnetti"  severity="secondary" text="true" (click)="disconnect()"/>
+        <p-button icon="pi pi-sign-out text-sm" label="Disconnetti" severity="secondary" text="true"
+            (click)="disconnect()" />
     </div>
 </nav>
 
@@ -26,19 +30,21 @@
                 </p-inputgroup-addon>
             </p-inputgroup>
 
-            <!-- todo: al posto di fare il routing devo inserire il dialog così non giro per pagine -->
-            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap" [routerLink]="['/private/new']" />
+            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap"
+                (click)="toggleNewUserDialog()" />
         </div>
     </header>
 
     <content>
         @for (item of users; track $index) {
-        <div class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center cursor-pointer">
+        <div
+            class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center cursor-pointer">
             <div class="flex flex-column" [routerLink]="['/private', item?.uuid]">
                 <p class="font-semibold text-lg">{{item?.email}}</p>
                 <p class="text-sm">{{item?.username}}</p>
             </div>
-            <p-button severity="danger" icon="pi pi-trash" text="true" (click)="deleteUserDialog($event, item?.email)" />
+            <p-button severity="danger" icon="pi pi-trash" text="true"
+                (click)="deleteUserDialog($event, item?.email)" />
         </div>
         } @empty {
         <p class="text-sm mt-3 text-color-secondary select-none">Nessun utente disponibile</p>
@@ -47,3 +53,30 @@
 </main>
 
 <p-confirmdialog />
+
+<p-dialog header="Crea un utente" [modal]="true" [(visible)]="showNewUserDialog"
+    [breakpoints]="{ '1199px': '70vw', '575px': '90vw' }" [style]="{ width: '30vw' }" draggable="false"
+    [resizable]="false">
+    <main>
+        <form [formGroup]="form" (ngSubmit)="confirmCreationDialog($event)" class="flex flex-column gap-2 pb-2">
+            <div class="flex gap-1 flex-column">
+                <label for="email">Indirizzo mail</label>
+                <input formControlName="email" type="text" pInputText placeholder="Inserisci l'indirizzo mail" />
+                <small class="text-color-secondary"
+                    *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">L'email è
+                    obbligatoria</small>
+                <small class="text-color-secondary"
+                    *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">Inserisci un indirizzo
+                    email valido</small>
+            </div>
+
+            <small class="text-color-secondary">Una volta creato, l'utente riceverà un'email di verifica col quale potrà
+                accedere e configurare il proprio profilo personale.</small>
+
+            <div class="flex gap-2 flex-column mt-2">
+                <p-button label="Crea utente" fluid="true" type="submit" [disabled]="!form.valid || loading"
+                    [loading]="loading" />
+            </div>
+        </form>
+    </main>
+</p-dialog>

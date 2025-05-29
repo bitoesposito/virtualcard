@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { EditComponent } from './edit/edit.component';
-import { NewComponent } from './new/new.component';
 import { authGuard } from '../guards/auth.guard';
 import { roleGuard } from '../guards/role.guard';
 import { UserProfileComponent } from '../public/components/user-profile/user-profile.component';
@@ -17,11 +16,6 @@ const routes: Routes = [
     path: 'edit',
     component: EditComponent,
     canActivate: [authGuard]
-  },
-  {
-    path: 'new',
-    component: NewComponent,
-    canActivate: [authGuard, roleGuard]
   },
   {
     path: ':uuid',

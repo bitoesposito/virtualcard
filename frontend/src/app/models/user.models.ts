@@ -37,3 +37,13 @@ export interface UserDetails extends User {
 export interface UserEmail {
   email: string;
 }
+
+/**
+ * Language interface
+ * Used for language selection
+ */
+export interface Language {
+  iso: string;
+  code: string;
+  lang: string;
+}

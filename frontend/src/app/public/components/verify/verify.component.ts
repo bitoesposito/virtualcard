@@ -123,7 +123,10 @@ export class VerifyComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
+          localStorage.removeItem('access_token');
+          localStorage.setItem('show_password_reset_notification', 'true');
           this.notificationService.handleSuccess('Password has been updated successfully');
+          this.router.navigate(['/login']);
         },
         error: (error: any) => {
           this.notificationService.handleError(error, 'An error occurred while updating password');
@@ -148,11 +151,7 @@ export class VerifyComponent implements OnInit {
         label: 'Conferma',
       },
       accept: () => {
-        this.resetPassword()
-        setTimeout(() => {
-          this.router.navigate(['/login'])
-          // todo: devo aggiungere una variabile che mostra un alert nella pagina fisso e poi se la vede l'utente di che vuole fare con sta pagina
-        }, 2000)
+        this.resetPassword();
       },
       reject: () => {
       },

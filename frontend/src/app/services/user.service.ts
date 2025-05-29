@@ -44,4 +44,16 @@ export class UserService {
       headers: this.getHeaders()
     });
   }
+
+  updateProfile(profileData: any): Observable<ApiResponse<UserDetails>> {
+    return this.http.put<ApiResponse<UserDetails>>(`${this.API_URL}/users/edit`, profileData, {
+      headers: this.getHeaders()
+    });
+  }
+
+  checkSlugAvailability(slug: string): Observable<ApiResponse<{ available: boolean }>> {
+    return this.http.get<ApiResponse<{ available: boolean }>>(`${this.API_URL}/users/check-slug/${slug}`, {
+      headers: this.getHeaders()
+    });
+  }
 } 

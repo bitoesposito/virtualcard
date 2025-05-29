@@ -144,6 +144,23 @@ export class UsersService {
     });
   }
 
+  async checkSlugAvailability(slug: string): Promise<ApiResponseDto<{ available: boolean }>> {
+    try {
+      if (!slug) {
+        return ApiResponseDto.error('Slug is required', HttpStatus.BAD_REQUEST);
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { slug }
+      });
+
+      return ApiResponseDto.success({ available: !user }, 'Slug availability checked successfully');
+    } catch (error) {
+      this.logger.error(`Failed to check slug availability for ${slug}:`, error);
+      return ApiResponseDto.error('Failed to check slug availability', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   private async isSlugTaken(slug: string, excludeUuid?: string): Promise<boolean> {
     const query = this.userRepository.createQueryBuilder('user')
       .where('user.slug = :slug', { slug });

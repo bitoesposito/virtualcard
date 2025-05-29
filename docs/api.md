@@ -14,6 +14,7 @@ DEL     user/delete             Permette l'eliminazione del profilo utente
 GET     user/list               Permette il listaggio di tutti gli utenti presenti in piattaforma
 GET     user/:slug              Visualizza tutti i dati pubblici di un profilo ricercandolo tramite slug
 GET     user/by-id/:uuid        Visualizza tutti i dati pubblici di un profilo ricercandolo tramite uuid
+GET     user/check-slug/:slug   Verifica se uno slug è disponibile per l'uso
 
 # Struttura risposta endpoint
 
@@ -346,6 +347,49 @@ reqBody: {
     "slug": "mario-rossi",
     "email": "info@mariorossi.com",
     "role": "user"
+  }
+}
+
+## user/check-slug/:slug
+### Descrizione
+
+Verifica se uno slug è disponibile per l'uso. Questo endpoint è utile per verificare se un URL del profilo è già in uso prima di tentare di salvarlo.
+
+### Risposte
+
+200: {
+  "success": true,
+  "message": "Slug availability checked successfully",
+  "data": {
+    "available": boolean
+  }
+}
+
+400: {
+  "success": false,
+  "message": "Invalid slug format",
+  "data": null
+}
+
+400: {
+  "success": false,
+  "message": "Invalid slug value",
+  "data": null
+}
+
+500: {
+  "success": false,
+  "message": "Failed to check slug availability",
+  "data": null
+}
+
+### Esempio di risposta eseguita con successo
+
+{
+  "success": true,
+  "message": "Slug availability checked successfully",
+  "data": {
+    "available": true
   }
 }
 

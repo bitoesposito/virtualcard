@@ -1,5 +1,6 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { jwtDecode } from 'jwt-decode';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
@@ -11,8 +12,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
   }
 
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const userRole = payload.role;
+    const decoded: any = jwtDecode(token);
+    const userRole = decoded.role;
 
     // Se l'utente è admin, può accedere a tutte le rotte private
     if (userRole === 'admin') {
@@ -25,9 +26,16 @@ export const roleGuard: CanActivateFn = (route, state) => {
     }
 
     // Per tutte le altre rotte private, reindirizza alla pagina di modifica
-    router.navigate(['/private/edit']);
-    return false;
-  } catch {
+    // Solo se non siamo già sulla pagina di modifica per evitare loop
+    if (!state.url.includes('/private/edit')) {
+      router.navigate(['/private/edit']);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    localStorage.removeItem('access_token');
     router.navigate(['/login']);
     return false;
   }

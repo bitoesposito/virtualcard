@@ -63,10 +63,8 @@ export class RecoverComponent {
       )
       .subscribe({
         next: () => {
-          this.notificationService.handleSuccess('If email is registered, will receive reset link');
-          setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 2000);
+          localStorage.setItem('show_password_recovery_notification', 'true');
+          this.router.navigate(['/login']);
         },
         error: (error: any) => {
           this.notificationService.handleError(error, 'An error occurred during password recovery');

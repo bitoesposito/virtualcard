@@ -2,26 +2,26 @@
 
 <main class="max-w-20rem m-auto mt-5">
 	<form [formGroup]="form" (ngSubmit)="editProfile()" class="flex flex-column gap-2 pb-4">
-		<p-button *ngIf="isAdmin" label="Vai alla dashboard" [routerLink]="'private/dashboard'" icon="pi pi-arrow-left" severity="secondary" outlined="true" class="mb-2"/>
-		<p class="text-2xl font-semibold">Modifica profilo</p>
+		<p-button *ngIf="isAdmin" label="Go to dashboard" [routerLink]="'private/dashboard'" icon="pi pi-arrow-left" severity="secondary" outlined="true" class="mb-2"/>
+		<p class="text-2xl font-semibold">Edit Profile</p>
 
 		<div *ngIf="!userData?.slug" class="p-3 border-round surface-100 mb-3">
-			<p class="text-lg font-medium mb-2">Benvenuto in vCarder!</p>
-			<p class="text-sm text-color-secondary">Per rendere il tuo profilo pubblico, completa la configurazione inserendo i tuoi dati e un link personalizzato per il tuo profilo.</p>
+			<p class="text-lg font-medium mb-2">Welcome to vCarder!</p>
+			<p class="text-sm text-color-secondary">To make your profile public, complete the setup by entering your details and a custom link for your profile.</p>
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="name">Nome</label>
-			<input formControlName="name" type="text" pInputText placeholder="Inserisci il nome" />
+			<label for="name">Name</label>
+			<input formControlName="name" type="text" pInputText placeholder="Enter your name" />
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="surname">Cognome</label>
-			<input formControlName="surname" type="text" pInputText placeholder="Inserisci il cognome" />
+			<label for="surname">Surname</label>
+			<input formControlName="surname" type="text" pInputText placeholder="Enter your surname" />
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="phone">Numero di telefono</label>
+			<label for="phone">Phone Number</label>
 			<div class="flex gap-1">
 				<div class="flex gap-1 flex-column">
 					<p-select formControlName="areaCode" [options]="area_code" optionLabel="label" optionValue="value"
@@ -39,32 +39,32 @@
 					</p-select>
 				</div>
 				<input fluid="true" formControlName="phone" type="tel" pInputText
-					placeholder="Inserisci il numero di telefono" />
+					placeholder="Enter phone number" />
 			</div>
 		</div>
 
 		<div class="flex gap-1 flex-column">
 			<label for="website">Website</label>
-			<input id="website" type="text" pInputText formControlName="website" [class.ng-invalid]="form.get('website')?.invalid && form.get('website')?.touched" placeholder="Inserisci il tuo sito web">
+			<input id="website" type="text" pInputText formControlName="website" [class.ng-invalid]="form.get('website')?.invalid && form.get('website')?.touched" placeholder="Enter your website">
 			<small class="text-red-500" *ngIf="form.get('website')?.invalid && form.get('website')?.touched">
-				Inserisci un URL valido
+				Please enter a valid URL
 			</small>
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="slug">Link del profilo</label>
-			<input id="slug" type="text" pInputText formControlName="slug" [class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" placeholder="Inserisci link al tuo profilo">
+			<label for="slug">Profile Link</label>
+			<input id="slug" type="text" pInputText formControlName="slug" [class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" placeholder="Enter your profile link">
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['required'] && form.get('slug')?.touched">
-				Il link del profilo è obbligatorio
+				Profile link is required
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['pattern'] && form.get('slug')?.touched">
-				Lo slug deve contenere solo lettere minuscole, numeri e trattini (3-50 caratteri)
+				The slug must contain only lowercase letters, numbers and hyphens (3-50 characters)
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['minlength'] && form.get('slug')?.touched">
-				Lo slug deve essere di almeno 3 caratteri
+				The slug must be at least 3 characters long
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['maxlength'] && form.get('slug')?.touched">
-				Lo slug non può superare i 50 caratteri
+				The slug cannot exceed 50 characters
 			</small>
 			<small class="text-red-500" *ngIf="slugError">
 				{{ slugError }}
@@ -77,8 +77,8 @@
 			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" binary="true" />
 			<div class="flex flex-column">
 				<label for="websiteSelect" class="ml-2">
-					Abilita il tasto per il sito web
-					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per visitare il tuo sito web</p>
+					Enable website button
+					<p class="text-xs  text-color-secondary">Show the website button on your public profile</p>
 				</label>
 			</div>
 		</div>
@@ -87,8 +87,8 @@
 			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" binary="true" />
 			<div class="flex flex-column">
 				<label for="whatsappSelect" class="ml-2">
-					Abilita tasto WhatsApp!
-					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per inviare un messaggio WhatsApp al numero associato</p>
+					Enable WhatsApp button
+					<p class="text-xs  text-color-secondary">Show the WhatsApp button on your public profile to send a message to the associated number</p>
 				</label>
 			</div>
 		</div>
@@ -97,21 +97,19 @@
 			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" binary="true" />
 			<div class="flex flex-column">
 				<label for="vCardSelect" class="ml-2">
-					Abilita tasto vCard
-					<p class="text-xs  text-color-secondary">Mostra sul profilo pubblico il tasto per salvare su dispositivi mobile i tuoi dati di contatto</p>
+					Enable vCard button
+					<p class="text-xs  text-color-secondary">Show the vCard button on your public profile to save your contact details on mobile devices</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-2 flex-column mt-2">
-			<p-button label="Aggiorna profilo" fluid="true" type="submit" [disabled]="!form.valid" />
+			<p-button label="Update Profile" fluid="true" type="submit" [disabled]="!form.valid" />
 			<div class="flex gap-2 w-full">
-				<p-button icon="pi pi-user text-sm" label="Vai al profilo" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured()"/>
+				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured()"/>
 				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}" (click)="shareProfile()"/>
 			</div>
-			<!-- <p-button label="Stampa biglietto da visita" icon="pi pi-print text-xs" severity="secondary" outlined="true" fluid="true" [disabled]="!form.valid" /> -->
-			<!-- <p-button label="Salva QR code" icon="pi pi-qrcode text-xs" severity="secondary" outlined="true" fluid="true" [disabled]="!form.valid" /> -->
-			<p-button label="Disconnettiti" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" />
+			<p-button label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" />
 		</div>
 	</form>
 </main>

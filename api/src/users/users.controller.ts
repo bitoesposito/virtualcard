@@ -90,10 +90,10 @@ export class UsersController {
 
         const user = response.data;
         
-        // Verifica che l'utente abbia abilitato la visibilità pubblica
-        if (!user.is_configured) {
-            return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
-        }
+        // // Verifica che l'utente abbia abilitato la visibilità pubblica
+        // if (!user.is_configured) {
+        //     return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
+        // }
 
         // Restituisci solo i dati pubblici
         const formattedUser = {
@@ -128,10 +128,10 @@ export class UsersController {
             return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
         }
 
-        // Verifica che l'utente abbia abilitato la visibilità pubblica
-        if (!user.is_configured) {
-            return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
-        }
+        // // Verifica che l'utente abbia abilitato la visibilità pubblica
+        // if (!user.is_configured) {
+        //     return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
+        // }
 
         // Restituisci solo i dati pubblici
         const formattedUser = {

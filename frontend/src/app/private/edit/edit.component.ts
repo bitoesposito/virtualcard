@@ -104,7 +104,7 @@ export class EditComponent implements OnInit {
     this.userService.checkSlugAvailability(slug).subscribe({
       next: (response: ApiResponse<{ available: boolean }>) => {
         if (!response.data?.available) {
-          this.slugError = 'Questo slug è già in uso. Scegline un altro.';
+          this.slugError = 'This slug is already in use. Please choose another one.';
           this.form.get('slug')?.setErrors({ 'slugTaken': true });
         } else {
           this.slugError = null;
@@ -120,7 +120,7 @@ export class EditComponent implements OnInit {
         }
       },
       error: (error: Error) => {
-        this.notificationService.handleError(error, 'Errore durante la verifica dello slug');
+        this.notificationService.handleError(error, 'Error checking slug availability');
         this.slugError = null;
       }
     });
@@ -150,22 +150,22 @@ export class EditComponent implements OnInit {
 
       this.userService.updateProfile(formData).subscribe({
         next: (response: any) => {
-          this.notificationService.handleSuccess('Profilo aggiornato con successo');
+          this.notificationService.handleSuccess('Profile updated successfully');
           this.getUserData();
         },
         error: (error: any) => {
-          this.notificationService.handleError(error, 'Errore durante l\'aggiornamento del profilo');
+          this.notificationService.handleError(error, 'Error updating profile');
         }
       });
     } else {
-      this.notificationService.handleWarning('Compila tutti i campi obbligatori');
+      this.notificationService.handleWarning('Fill in all required fields');
     }
   }
 
   getUserData() {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      this.notificationService.handleError(null, 'Sessione scaduta');
+      this.notificationService.handleError(null, 'Session expired');
       this.disconnect();
       return;
     }
@@ -173,35 +173,49 @@ export class EditComponent implements OnInit {
     try {
       const decoded: any = jwtDecode(token);
       if (!decoded.sub) {
-        this.notificationService.handleError(null, 'Token non valido');
+        this.notificationService.handleError(null, 'Invalid token');
         return;
       }
 
       this.userService.getUser(decoded.sub).subscribe({
         next: (response: ApiResponse<UserDetails>) => {
-          if (response.success && response.data) {
-            this.userData = response.data;
+          if (response.success) {
+            // Initialize with empty values if no data exists
+            this.userData = response.data || {};
             this.form.patchValue({
-              name: response.data.name || '',
-              surname: response.data.surname || '',
-              areaCode: response.data.areaCode || '+39',
-              phone: response.data.phone || '',
-              website: response.data.website || '',
-              isWebsiteEnabled: response.data.isWebsiteEnabled || false,
-              isWhatsappEnabled: response.data.isWhatsappEnabled || false,
-              isVcardEnabled: response.data.isVcardEnabled || false,
-              slug: response.data.slug || ''
+              name: this.userData.name || '',
+              surname: this.userData.surname || '',
+              areaCode: this.userData.areaCode || '+39',
+              phone: this.userData.phone || '',
+              website: this.userData.website || '',
+              isWebsiteEnabled: this.userData.isWebsiteEnabled || false,
+              isWhatsappEnabled: this.userData.isWhatsappEnabled || false,
+              isVcardEnabled: this.userData.isVcardEnabled || false,
+              slug: this.userData.slug || ''
             });
-            this.selectedAreaCode = response.data.areaCode || '+39';
+            this.selectedAreaCode = this.userData.areaCode || '+39';
           } else {
-            this.notificationService.handleError(null, response.message || 'Errore nel recupero dei dati del profilo');
+            // Initialize with empty values if the request was successful but no data
+            this.userData = {};
+            this.form.patchValue({
+              name: '',
+              surname: '',
+              areaCode: '+39',
+              phone: '',
+              website: '',
+              isWebsiteEnabled: false,
+              isWhatsappEnabled: false,
+              isVcardEnabled: false,
+              slug: ''
+            });
+            this.selectedAreaCode = '+39';
           }
         },
         error: (error: any) => {
           if (error.status === 401) {
             this.disconnect();
           } else {
-            this.notificationService.handleError(error, 'Errore durante il recupero del profilo');
+            this.notificationService.handleError(error, 'Error retrieving profile');
           }
         }
       });
@@ -211,7 +225,7 @@ export class EditComponent implements OnInit {
       }
 
     } catch (error) {
-      this.notificationService.handleError(error, 'Errore nella decodifica del token');
+      this.notificationService.handleError(error, 'Error decoding token');
     }
   }
 
@@ -222,7 +236,7 @@ export class EditComponent implements OnInit {
   shareProfile() {
     const url = `${window.location.origin}/u/${this.userData.slug}`;
     navigator.clipboard.writeText(url);
-    this.notificationService.handleSuccess('Link del profilo copiato negli appunti');
+    this.notificationService.handleSuccess('Profile link copied to clipboard');
   }
 
   isProfileConfigured(): boolean {

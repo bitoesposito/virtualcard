@@ -15,24 +15,20 @@ export const roleGuard: CanActivateFn = (route, state) => {
     const decoded: any = jwtDecode(token);
     const userRole = decoded.role;
 
-    // Se l'utente è admin, può accedere a tutte le rotte private
+    // If user is admin, they can access all private routes
     if (userRole === 'admin') {
       return true;
     }
 
-    // Se l'utente non è admin, può accedere solo alla pagina di modifica
+    // If user is not admin, they can only access the edit page
     if (state.url.includes('/private/edit')) {
       return true;
     }
 
-    // Per tutte le altre rotte private, reindirizza alla pagina di modifica
-    // Solo se non siamo già sulla pagina di modifica per evitare loop
-    if (!state.url.includes('/private/edit')) {
-      router.navigate(['/private/edit']);
-      return false;
-    }
-
-    return true;
+    // For all other private routes, redirect to edit page
+    // Only if we're not already on the edit page to avoid loops
+    router.navigate(['/private/edit']);
+    return false;
   } catch (error) {
     console.error('Error decoding token:', error);
     localStorage.removeItem('access_token');

@@ -6,13 +6,13 @@
         <img src="./logo-full.svg" alt="vcarder_logo" height="50" />
     </div>
     <div class="flex gap-2 align-items-center">
-        <div [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none cursor-pointer" pTooltip="Modifica il tuo profilo" tooltipPosition="bottom">
+        <div [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none cursor-pointer" pTooltip="Edit your profile" tooltipPosition="bottom">
             <i class="pi pi-user mr-2"></i>{{this.currentUserEmail}}
         </div>
 
-        <i [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline cursor-pointer" pTooltip="Modifica il tuo profilo" tooltipPosition="bottom"></i>
+        <i [routerLink]="['/private/edit']" routerLinkActive="router-link-active" class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline cursor-pointer" pTooltip="Edit your profile" tooltipPosition="bottom"></i>
 
-        <p-button icon="pi pi-sign-out text-sm" label="Disconnetti" severity="secondary" text="true"
+        <p-button icon="pi pi-sign-out text-sm" label="Disconnect" severity="secondary" text="true"
             (click)="disconnect()" />
     </div>
 </nav>
@@ -24,13 +24,13 @@
 
         <div class="flex gap-2 w-full">
             <p-inputgroup class="w-full">
-                <input pInputText placeholder="Cerca utente..." class="w-full" />
+                <input pInputText placeholder="Search user..." class="w-full" />
                 <p-inputgroup-addon>
                     <p-button icon="pi pi-search" severity="secondary" variant="text" severity="primary" />
                 </p-inputgroup-addon>
             </p-inputgroup>
 
-            <p-button icon="pi pi-user-plus" outlined="true" label="Crea utente" class="white-space-nowrap"
+            <p-button icon="pi pi-user-plus" outlined="true" label="Create User" class="white-space-nowrap"
                 (click)="toggleNewUserDialog()" />
         </div>
     </header>
@@ -47,34 +47,31 @@
                 (click)="deleteUserDialog($event, item?.email)" />
         </div>
         } @empty {
-        <p class="text-sm mt-3 text-color-secondary select-none">Nessun utente disponibile</p>
+        <p class="text-sm mt-3 text-color-secondary select-none">No users available</p>
         }
     </content>
 </main>
 
 <p-confirmdialog />
 
-<p-dialog header="Crea un utente" [modal]="true" [(visible)]="showNewUserDialog"
+<p-dialog header="Create User" [modal]="true" [(visible)]="showNewUserDialog"
     [breakpoints]="{ '1199px': '70vw', '575px': '90vw' }" [style]="{ width: '30vw' }" draggable="false"
     [resizable]="false">
     <main>
         <form [formGroup]="form" (ngSubmit)="confirmCreationDialog($event)" class="flex flex-column gap-2 pb-2">
             <div class="flex gap-1 flex-column">
-                <label for="email">Indirizzo mail</label>
-                <input formControlName="email" type="text" pInputText placeholder="Inserisci l'indirizzo mail" />
+                <label for="email">Email Address</label>
+                <input formControlName="email" type="email" pInputText placeholder="Enter email address" />
                 <small class="text-color-secondary"
-                    *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">L'email è
-                    obbligatoria</small>
+                    *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">Email is required</small>
                 <small class="text-color-secondary"
-                    *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">Inserisci un indirizzo
-                    email valido</small>
+                    *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">Please enter a valid email address</small>
             </div>
 
-            <small class="text-color-secondary">Una volta creato, l'utente riceverà un'email di verifica col quale potrà
-                accedere e configurare il proprio profilo personale.</small>
+            <small class="text-color-secondary">Once created, the user will receive a verification email to access and configure their personal profile.</small>
 
             <div class="flex gap-2 flex-column mt-2">
-                <p-button label="Crea utente" fluid="true" type="submit" [disabled]="!form.valid || loading"
+                <p-button label="Create User" fluid="true" type="submit" [disabled]="!form.valid || loading"
                     [loading]="loading" />
             </div>
         </form>

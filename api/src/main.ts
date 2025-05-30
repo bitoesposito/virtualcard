@@ -19,6 +19,6 @@ async function bootstrap() {
   // Register global exception interceptor
   app.useGlobalInterceptors(new HttpExceptionInterceptor());
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.BE_PORT ?? 3000);
 }
 bootstrap();

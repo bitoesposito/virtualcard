@@ -62,7 +62,7 @@ export class UserProfileComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'Utente non trovato')
+        this.notificationService.handleError(error, 'User not found')
         this.notFound = true;
       }
     })
@@ -79,7 +79,7 @@ export class UserProfileComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'Utente non trovato')
+        this.notificationService.handleError(error, 'User not found')
         this.notFound = true;
       }
     })
@@ -104,7 +104,7 @@ export class UserProfileComponent implements OnInit {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(this.userData.name + this.userData.surname) || 'contatto'}.vcf`;
+    a.download = `${(this.userData.name + this.userData.surname) || 'contact'}.vcf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

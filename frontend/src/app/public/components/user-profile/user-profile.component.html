@@ -14,26 +14,26 @@
         </p>
 
         <a class="w-full" *ngIf="userData.isWhatsappEnabled" [href]="'https://wa.me/' + userData.phone">
-            <p-button label="Scrivimi su Whatsapp" fluid="true"></p-button>
+            <p-button label="Message me on WhatsApp" fluid="true"></p-button>
         </a>
 
         <a class="w-full" *ngIf="userData.isWebsiteEnabled"
         [href]="userData.website.startsWith('https') ? userData.website : ('https://' + userData.website)">
-            <p-button label="Visita il mio sito web" fluid="true"></p-button>
+            <p-button label="Visit my website" fluid="true"></p-button>
         </a>
 
         <a class="w-full" *ngIf="userData.phone" [href]="'tel:' + userData.areaCode + userData.phone">
-            <p-button label="Chiamami" fluid="true"></p-button>
+            <p-button label="Call me" fluid="true"></p-button>
         </a>
 
         <a class="w-full" *ngIf="userData.email" [href]="'mailto:' + userData.email">
-            <p-button label="Invia una mail" fluid="true"></p-button>
+            <p-button label="Send Email" fluid="true"></p-button>
         </a>
 
-        <p-button *ngIf="userData.isVcardEnabled" label="Salva il contatto" outlined="true" severity="secondary" icon="pi pi-save" fluid="true" (click)="vCard()"/>
+        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" icon="pi pi-save" fluid="true" (click)="vCard()"/>
     </div>
 
     <div *ngIf="notFound" class="flex flex-column gap-3">
-        <p class="text-color-secondary">Utente non trovato</p>
+        <p class="text-color-secondary">User not found</p>
     </div>
 </main>

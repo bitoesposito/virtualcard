@@ -88,11 +88,11 @@ export class LoginComponent implements OnInit {
     const showNotification = localStorage.getItem('show_password_reset_notification');
     const showRecoveryNotification = localStorage.getItem('show_password_recovery_notification');
     if (showNotification === 'true') {
-      this.notificationService.handleSuccess('Password resettata con successo.');
+      this.notificationService.handleSuccess('Password reset successfully.');
       localStorage.removeItem('show_password_reset_notification');
     }
     if (showRecoveryNotification === 'true') {
-      this.notificationService.handleSuccess('Se l\'email è registrata, riceverai un link per reimpostare la password.');
+      this.notificationService.handleSuccess('If the email is registered, you will receive a link to reset your password.');
       localStorage.removeItem('show_password_recovery_notification');
     }
   }

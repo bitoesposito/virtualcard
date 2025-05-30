@@ -1,10 +1,11 @@
 services:
-
   api:
     build:
       context: ./api
+      dockerfile: Dockerfile
     volumes:
       - ./api:/src/app
+      - /src/app/node_modules  # Evita conflitti con node_modules
     command: npm run start:dev
     env_file:
       - .env
@@ -12,7 +13,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - DATABASE_URL=${DATABASE_URL}
-      - PORT=${PORT}
+      - PORT=${BE_PORT}
     ports:
       - 3000:3000
     depends_on:
@@ -29,13 +30,11 @@ services:
       context: ./frontend
     volumes:
       - ./frontend:/frontend
-      - /frontend/node_modules
+      - /frontend/node_modules  # Evita conflitti con node_modules
     ports:
       - 4200:4200
     environment:
       - NODE_ENV=development
-    links:
-      - api
     depends_on:
       - api
 

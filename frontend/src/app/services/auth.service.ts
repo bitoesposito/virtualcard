@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api.models';
-import { LoginRequest, LoginResponseData, RecoverResponse, VerifyRequest } from '../models/auth.models';
+import { LoginRequestData, LoginResponseData, RecoverResponse, VerifyRequest } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,7 @@ export class AuthService {
    * @param credentials Login credentials
    * @returns Observable with login response containing JWT token and user data
    */
-  login(credentials: LoginRequest): Observable<ApiResponse<LoginResponseData>> {
+  login(credentials: LoginRequestData): Observable<ApiResponse<LoginResponseData>> {
     return this.http.post<ApiResponse<LoginResponseData>>(`${this.API_URL}/auth/login`, credentials);
   }
 

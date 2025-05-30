@@ -1,6 +1,6 @@
 <p-toast class="absolute"/>
 
-<main class="h-screen w-full flex align-items-center justify-content-center">
+<main class="sm:h-screen sm:mt-0 h-min mt-8 w-full flex align-items-center justify-content-center">
   <content class="flex flex-column gap-3 w-20rem">
 
     <a href="/">
@@ -11,18 +11,18 @@
 
     <form [formGroup]="form" (ngSubmit)="login()" class="flex flex-column gap-2">
       <div class="flex gap-1 flex-column">
-        <label for="email">Indirizzo mail</label>
-        <input formControlName="email" type="email" pInputText placeholder="Inserisci indirizzo mail"/>
+        <label for="email">Email Address</label>
+        <input formControlName="email" type="email" pInputText placeholder="Enter email address"/>
       </div>
 
       <div class="flex gap-1 flex-column">
         <label for="password">Password</label>
-        <p-password formControlName="password" id="password" type="password" placeholder="Inserisci la password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
+        <p-password formControlName="password" id="password" type="password" placeholder="Enter password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
       </div>
 
       <div class="flex gap-2 flex-column mt-2">
-        <p-button label="Accedi" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading"/>
-        <p-button class="text-center" label="Recupera la password" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/recover']" [disabled]="loading"/>
+        <p-button label="Login" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading"/>
+        <p-button class="text-center" label="Recover Password" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/recover']" [disabled]="loading"/>
       </div>
     </form>
 

@@ -14,19 +14,19 @@ export class NotificationService {
     ) {}
 
     /**
-     * Gestisce il messaggio di errore o successo in modo centralizzato
-     * @param severity Tipo di messaggio (success/error)
-     * @param message Messaggio da mostrare
+     * Handles error or success messages in a centralized way
+     * @param severity Message type (success/error)
+     * @param message Message to display
      */
     showMessage(severity: 'success' | 'error', message: string): void {
         let summary = '';
     
         switch (severity) {
             case 'success':
-                summary = 'Successo';
+                summary = 'Success';
                 break;
             case 'error':
-                summary = 'Errore';
+                summary = 'Error';
                 break;
         }
     
@@ -38,9 +38,9 @@ export class NotificationService {
     }
 
     /**
-     * Gestisce le risposte API mostrando un messaggio appropriato
-     * @param response Risposta API
-     * @param defaultMessage Messaggio predefinito se la risposta non contiene un messaggio
+     * Handles API responses by showing an appropriate message
+     * @param response API response
+     * @param defaultMessage Default message if the response doesn't contain a message
      */
     handleApiResponse<T>(response: ApiResponse<T>, defaultMessage: string): void {
         if (response.success) {
@@ -51,9 +51,9 @@ export class NotificationService {
     }
 
     /**
-     * Gestisce gli errori HTTP mostrando un messaggio appropriato
-     * @param error Errore HTTP
-     * @param defaultMessage Messaggio predefinito se l'errore non contiene un messaggio
+     * Handles HTTP errors by showing an appropriate message
+     * @param error HTTP error
+     * @param defaultMessage Default message if the error doesn't contain a message
      */
     handleError(error: any, defaultMessage: string): void {
         let errorMessage = defaultMessage;
@@ -77,16 +77,16 @@ export class NotificationService {
     }
 
     /**
-     * Gestisce le risposte di successo delle chiamate API
-     * @param message Messaggio di successo da mostrare all'utente
+     * Handles successful API call responses
+     * @param message Success message to display to the user
      */
     handleSuccess(message: string): void {
         this.showMessage('success', message);
     }
 
     /**
-     * Gestisce le risposte di warning delle chiamate API
-     * @param message Messaggio di warning da mostrare all'utente
+     * Handles API call warning responses
+     * @param message Warning message to display to the user
      */
     handleWarning(message: string): void {
         this.showMessage('error', message);

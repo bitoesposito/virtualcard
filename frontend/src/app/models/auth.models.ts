@@ -1,15 +1,17 @@
+import { User } from './user.models';
+
 /**
- * Request per il login
- * Richiede email e password
+ * Login request data
+ * Contains email and password
  */
-export interface LoginRequest {
+export interface LoginRequestData {
   email: string;
   password: string;
 }
 
 /**
- * Dati restituiti dal login
- * Contiene il token JWT e i dati essenziali dell'utente
+ * Login response data
+ * Contains the JWT token and essential user data
  */
 export interface LoginResponseData {
   access_token: string;
@@ -21,16 +23,16 @@ export interface LoginResponseData {
 }
 
 /**
- * Response del recupero password
- * Ritorna il tempo di validità del token
+ * Password recovery response
+ * Returns the token expiration time
  */
 export interface RecoverResponse {
   expiresIn: number; // Duration in seconds (10 minutes)
 }
 
 /**
- * Body per l'invio della richiesta della verifica del token
- * Richiede il token e la nuova password
+ * Token verification request body
+ * Requires token and new password
  */
 export interface VerifyRequest {
   token: string;

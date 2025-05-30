@@ -69,18 +69,18 @@ export class DashboardComponent {
   confirmCreationDialog(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Conferma di voler procedere con la creazione',
-      header: 'Crea utente',
+      message: 'Confirm that you want to proceed with creation',
+      header: 'Create user',
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'annulla',
+        label: 'Cancel',
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Conferma',
+        label: 'Confirm',
       },
       accept: () => {
         this.create();
@@ -125,18 +125,18 @@ export class DashboardComponent {
   deleteUserDialog(event: Event, email: string) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Sei sicuro di voler eliminare l\'utente?',
-      header: 'Elimina utente',
+      message: 'Are you sure you want to delete this user?',
+      header: 'Delete user',
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'annulla',
+        label: 'Cancel',
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Elimina',
+        label: 'Delete',
         severity: 'danger'
       },
       accept: () => {
@@ -163,11 +163,11 @@ export class DashboardComponent {
         if (response.success) {
           this.users = response.data || [];
         } else {
-          this.notificationService.showMessage('error', response.message || 'Errore nel recupero degli utenti');
+          this.notificationService.showMessage('error', response.message || 'Error retrieving users');
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'Errore nel recupero degli utenti');
+        this.notificationService.handleError(error, 'Error retrieving users');
       }
     });
   }
@@ -180,14 +180,14 @@ export class DashboardComponent {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.notificationService.showMessage('success', 'Utente eliminato con successo');
+            this.notificationService.showMessage('success', 'User deleted successfully');
             this.getUsers(); // Refresh user list
           } else {
-            this.notificationService.showMessage('error', response.message || 'Errore nell\'eliminazione dell\'utente');
+            this.notificationService.showMessage('error', response.message || 'Error deleting user');
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, 'Errore nell\'eliminazione dell\'utente');
+          this.notificationService.handleError(error, 'Error deleting user');
         }
       });
   }

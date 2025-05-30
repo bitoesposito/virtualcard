@@ -137,18 +137,18 @@ export class VerifyComponent implements OnInit {
   confirmPasswordDialog(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Conferma di voler procedere con la verifica',
-      header: 'Verifica password',
+      message: 'Confirm that you want to proceed with verification',
+      header: 'Verify password',
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'annulla',
+        label: 'Cancel',
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Conferma',
+        label: 'Confirm',
       },
       accept: () => {
         this.resetPassword();

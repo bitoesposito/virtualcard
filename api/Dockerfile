@@ -1,18 +1,20 @@
+# API Dockerfile
 FROM node:23-slim
 
 WORKDIR /src/app
 
-# Install dependencies first (better caching)
+# Copia solo i file di dipendenze prima
 COPY package*.json ./
+
+# Installa le dipendenze
 RUN npm install && \
     npm install pg --save && \
     npm i -g @nestjs/cli
 
-# Copy configuration files
-COPY tsconfig*.json ./
+# Copia il resto del codice
 COPY . .
 
-CMD ["npm", "run", "start", "&&", "npm", "i"]
-
-
 EXPOSE 3000
+
+# Comando corretto (non puoi usare && con CMD)
+CMD ["npm", "run", "start:dev"]

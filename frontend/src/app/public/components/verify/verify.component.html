@@ -1,38 +1,38 @@
 <p-toast class="absolute"/>
 
-<main class="h-screen w-full flex align-items-center justify-content-center">
+<main class="sm:h-screen sm:mt-0 h-min mt-8 w-full flex align-items-center justify-content-center">
 	<content class="flex flex-column gap-3 w-20rem">
 		    
 		<a href="/">
 		<img src="./logo-full.svg" alt="vcarder_logo" height="50"/>
 		</a>
 		
-		<p class="text-2xl font-semibold">Reimposta Password</p>
+		<p class="text-2xl font-semibold">Reset Password</p>
 
 		<form [formGroup]="form" (ngSubmit)="confirmPasswordDialog($event)" class="flex flex-column gap-2 mb-2">
 			<div class="flex gap-1 flex-column">
-				<label for="password">Nuova Password</label>
-				<p-password formControlName="password" id="password" type="password" placeholder="Inserisci la nuova password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="true" weakLabel="Debole" mediumLabel="Media" strongLabel="Forte" promptLabel="Inserisci una password">
+				<label for="password">New Password</label>
+				<p-password formControlName="password" id="password" type="password" placeholder="Enter new password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="true" weakLabel="Weak" mediumLabel="Medium" strongLabel="Strong" promptLabel="Enter a password">
 					<ng-template #header>
-						<div class="font-semibold text-xm mb-4">Seleziona una password</div>
+						<div class="font-semibold text-xm mb-4">Select a password</div>
 					</ng-template>
 					<ng-template #footer>
 						<p-divider />
 						<ul class="pl-2 ml-2 my-0 leading-normal">
 							<li [class.text-red-500]="password.value && !hasLowerCase(password.value)">
-								Almeno una minuscola
+								At least one lowercase letter
 							</li>
 							<li [class.text-red-500]="password.value && !hasUpperCase(password.value)">
-								Almeno una maiuscola
+								At least one uppercase letter
 							</li>
 							<li [class.text-red-500]="password.value && !hasNumber(password.value)">
-								Almeno un numero
+								At least one number
 							</li>
 							<li [class.text-red-500]="password.value && !hasMinLength(password.value)">
-								Minimo 8 caratteri
+								Minimum 8 characters
 							</li>
 							<li [class.text-red-500]="password.value && !hasSymbol(password.value)">
-								Almeno un simbolo
+								At least one symbol
 							</li>
 						</ul>
 					</ng-template>
@@ -40,13 +40,13 @@
 			</div>
 
 			<div class="flex gap-1 flex-column">
-				<label for="confirmPassword">Conferma Password</label>
-				<p-password formControlName="confirmPassword" id="confirmPassword" type="password" placeholder="Conferma la nuova password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
+				<label for="confirmPassword">Confirm Password</label>
+				<p-password formControlName="confirmPassword" id="confirmPassword" type="password" placeholder="Confirm new password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
 			</div>
 
 			<div class="flex gap-2 flex-column mt-2">
-				<p-button type="submit" label="Reimposta Password" styleClass="w-full" [disabled]="!form.valid || loading" [loading]="loading"/>
-				<p-button class="text-center" label="Torna al login" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/login']" [disabled]="loading"/>
+				<p-button type="submit" label="Reset Password" styleClass="w-full" [disabled]="!form.valid || loading" [loading]="loading"/>
+				<p-button class="text-center" label="Back to login" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/login']" [disabled]="loading"/>
 			</div>
 		</form>
 	</content>

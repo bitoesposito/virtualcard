@@ -1,10 +1,10 @@
 services:
-  api:
+  backend:
     build:
-      context: ./api
+      context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./api:/src/app
+      - ./backend:/src/app
       - /src/app/node_modules  # Evita conflitti con node_modules
     command: npm run start:dev
     env_file:
@@ -12,7 +12,7 @@ services:
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DB_URL}
       - PORT=${BE_PORT}
     ports:
       - 3000:3000
@@ -22,36 +22,39 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./api
+          path: ./backend
 
-  frontend:
-    build:
-      dockerfile: Dockerfile
-      context: ./frontend
-    volumes:
-      - ./frontend:/frontend
-      - /frontend/node_modules  # Evita conflitti con node_modules
-    ports:
-      - 4200:4200
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - api
+  # frontend:
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./frontend
+  #   volumes:
+  #     - ./frontend:/frontend
+  #     - /frontend/node_modules  # Evita conflitti con node_modules
+  #   ports:
+  #     - 4200:4200
+  #   environment:
+  #     - NODE_ENV=development
+  #   depends_on:
+  #     - backend
 
   postgres:
     image: postgres:latest
     environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_HASHED_PASSWORD: ${ADMIN_HASHED_PASSWORD}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      ADMIN_HASHED_PASSWORD: ${ADMIN_PASSWORD}
     ports:
       - 35000:5432
     volumes:
-      - ./api/src/database/seed/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+volumes:
+  postgres_data:

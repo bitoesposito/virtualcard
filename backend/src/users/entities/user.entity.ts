@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne } from 'typeorm';
 import { UserRole } from '../../auth/auth.interface';
+import { UserProfile } from './user-profile.entity';
 
 @Entity('auth_users')
 export class User {
@@ -36,4 +37,7 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne(() => UserProfile, profile => profile.user)
+  profile: UserProfile;
 } 

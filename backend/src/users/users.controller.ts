@@ -13,7 +13,8 @@ import {
   NotFoundException,
   Put,
   Delete,
-  Request
+  Request,
+  BadRequestException
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, EditUserDto, DeleteUserDto } from './users.dto';
@@ -48,8 +49,31 @@ export class UsersController {
   @Roles(UserRole.admin)
   @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() createUserDto: CreateUserDto) {
-    this.logger.log('Creating new user', { email: createUserDto.email });
-    return await this.usersService.createUser(createUserDto);
+    this.logger.log('Creating new user', { 
+      email: createUserDto.email,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!createUserDto.email) {
+      this.logger.warn('Create user attempt with missing email');
+      throw new BadRequestException('Email is required');
+    }
+
+    const response = await this.usersService.createUser(createUserDto);
+    
+    if (!response.success) {
+      this.logger.error('Failed to create user', { 
+        email: createUserDto.email,
+        error: response.message
+      });
+    } else {
+      this.logger.log('User created successfully', { 
+        email: createUserDto.email,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    return response;
   }
 
   /**
@@ -65,11 +89,15 @@ export class UsersController {
   @Roles(UserRole.admin)
   @HttpCode(HttpStatus.OK)
   async listUsers() {
-    this.logger.log('Retrieving users list');
+    this.logger.log('Retrieving users list', { timestamp: new Date().toISOString() });
+    
     const response = await this.usersService.findAll();
     
-    if (!response.success || !response.data) {
-      this.logger.error('Failed to retrieve users list', { error: response.message });
+    if (!response.success) {
+      this.logger.error('Failed to retrieve users list', { 
+        error: response.message,
+        timestamp: new Date().toISOString()
+      });
       return response;
     }
 
@@ -81,7 +109,11 @@ export class UsersController {
       created_at: user.created_at,
     }));
 
-    this.logger.log('Users list retrieved successfully', { count: formattedUsers.length });
+    this.logger.log('Users list retrieved successfully', { 
+      count: formattedUsers.length,
+      timestamp: new Date().toISOString()
+    });
+
     return ApiResponseDto.success(formattedUsers, 'Users list retrieved successfully');
   }
 
@@ -99,16 +131,32 @@ export class UsersController {
   @Roles(UserRole.admin)
   @HttpCode(HttpStatus.OK)
   async getUser(@Param('uuid', ParseUUIDPipe) uuid: string) {
-    this.logger.log('Retrieving user details', { uuid });
+    this.logger.log('Retrieving user details', { 
+      uuid,
+      timestamp: new Date().toISOString()
+    });
+
     try {
       const user = await this.usersService.findByUuid(uuid);
+      this.logger.log('User details retrieved successfully', { 
+        uuid,
+        timestamp: new Date().toISOString()
+      });
       return ApiResponseDto.success(user, 'User details retrieved successfully');
     } catch (error) {
       if (error instanceof NotFoundException) {
-        this.logger.warn('User not found', { uuid });
+        this.logger.warn('User not found', { 
+          uuid,
+          timestamp: new Date().toISOString()
+        });
         throw error;
       }
-      this.logger.error('Failed to retrieve user details', { uuid, error: error.message });
+      this.logger.error('Failed to retrieve user details', { 
+        uuid, 
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       throw error;
     }
   }
@@ -126,13 +174,18 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async editUser(@Body() editUserDto: EditUserDto, @Request() req) {
-    this.logger.log('Updating user profile', { email: req.user.email });
+    this.logger.log('Updating user profile', { 
+      email: req.user.email,
+      timestamp: new Date().toISOString()
+    });
+
     const response = await this.usersService.editUser(req.user.email, editUserDto, req.user);
     
-    if (!response.success || !response.data) {
+    if (!response.success) {
       this.logger.error('Failed to update profile', { 
         email: req.user.email, 
-        error: response.message 
+        error: response.message,
+        timestamp: new Date().toISOString()
       });
       return response;
     }
@@ -140,6 +193,7 @@ export class UsersController {
     const profile = response.data;
     const formattedProfile = {
       uuid: profile.uuid,
+      email: profile.email,
       name: profile.name,
       surname: profile.surname,
       area_code: profile.area_code,
@@ -154,7 +208,11 @@ export class UsersController {
       updated_at: profile.updated_at
     };
 
-    this.logger.log('Profile updated successfully', { profileId: profile.uuid });
+    this.logger.log('Profile updated successfully', { 
+      profileId: profile.uuid,
+      timestamp: new Date().toISOString()
+    });
+
     return ApiResponseDto.success(formattedProfile, 'Profile updated successfully');
   }
 
@@ -171,7 +229,148 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async deleteUser(@Body() deleteUserDto: DeleteUserDto, @Request() req) {
-    this.logger.log('Deleting user', { email: deleteUserDto.email });
-    return await this.usersService.deleteUser(deleteUserDto.email, req.user);
+    this.logger.log('Deleting user', { 
+      email: deleteUserDto.email,
+      requestingUser: req.user.email,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!deleteUserDto.email) {
+      this.logger.warn('Delete user attempt with missing email');
+      throw new BadRequestException('Email is required');
+    }
+
+    const response = await this.usersService.deleteUser(deleteUserDto.email, req.user);
+    
+    if (!response.success) {
+      this.logger.error('Failed to delete user', { 
+        email: deleteUserDto.email,
+        error: response.message,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      this.logger.log('User deleted successfully', { 
+        email: deleteUserDto.email,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    return response;
+  }
+
+  /**
+   * Retrieves a user profile by slug
+   * Public endpoint
+   * 
+   * @param slug - Profile slug
+   * @returns Promise<ApiResponseDto<UserProfile>> - Response containing profile details
+   */
+  @Get(':slug')
+  @HttpCode(HttpStatus.OK)
+  async getUserBySlug(@Param('slug') slug: string) {
+    this.logger.log('Retrieving user profile by slug', { 
+      slug,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!slug || typeof slug !== 'string') {
+      this.logger.warn('Invalid slug format', { slug });
+      return ApiResponseDto.error('Invalid slug format', HttpStatus.BAD_REQUEST);
+    }
+
+    const trimmedSlug = slug.trim();
+    if (trimmedSlug === '' || trimmedSlug.toLowerCase() === 'null' || trimmedSlug.toLowerCase() === 'undefined') {
+      this.logger.warn('Invalid slug value', { slug: trimmedSlug });
+      return ApiResponseDto.error('Invalid slug value', HttpStatus.BAD_REQUEST);
+    }
+
+    const response = await this.usersService.findBySlug(trimmedSlug);
+    if (!response.success) {
+      this.logger.error('Failed to retrieve user profile', { 
+        slug: trimmedSlug,
+        error: response.message,
+        timestamp: new Date().toISOString()
+      });
+      return response;
+    }
+
+    const profile = response.data;
+    if (!profile) {
+      this.logger.error('Profile data is null', { 
+        slug: trimmedSlug,
+        timestamp: new Date().toISOString()
+      });
+      return ApiResponseDto.error('Profile not found', HttpStatus.NOT_FOUND);
+    }
+    
+    // Restituisci solo i dati pubblici
+    const formattedProfile = {
+      uuid: profile.uuid,
+      email: profile.email,
+      name: profile.name,
+      surname: profile.surname,
+      areaCode: profile.area_code,
+      phone: profile.phone,
+      website: profile.website,
+      isWhatsappEnabled: profile.is_whatsapp_enabled,
+      isWebsiteEnabled: profile.is_website_enabled,
+      isVcardEnabled: profile.is_vcard_enabled,
+      slug: profile.slug
+    };
+
+    this.logger.log('User profile retrieved successfully', { 
+      slug: trimmedSlug,
+      timestamp: new Date().toISOString()
+    });
+
+    return ApiResponseDto.success(formattedProfile, 'User profile retrieved successfully');
+  }
+
+  /**
+   * Checks if a slug is available
+   * Requires authentication
+   * 
+   * @param slug - Slug to check
+   * @param req - Request object containing authenticated user
+   * @returns Promise<ApiResponseDto<{ available: boolean }>> - Response indicating if slug is available
+   */
+  @Get('check-slug/:slug')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async checkSlugAvailability(@Param('slug') slug: string, @Request() req) {
+    this.logger.log('Checking slug availability', { 
+      slug,
+      userEmail: req.user.email,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!slug || typeof slug !== 'string') {
+      this.logger.warn('Invalid slug format', { slug });
+      return ApiResponseDto.error('Invalid slug format', HttpStatus.BAD_REQUEST);
+    }
+
+    const trimmedSlug = slug.trim();
+    if (trimmedSlug === '' || trimmedSlug.toLowerCase() === 'null' || trimmedSlug.toLowerCase() === 'undefined') {
+      this.logger.warn('Invalid slug value', { slug: trimmedSlug });
+      return ApiResponseDto.error('Invalid slug value', HttpStatus.BAD_REQUEST);
+    }
+
+    const response = await this.usersService.checkSlugAvailability(trimmedSlug, req.user.profile_uuid);
+    
+    if (!response.success) {
+      this.logger.error('Failed to check slug availability', { 
+        slug: trimmedSlug,
+        error: response.message,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      this.logger.log('Slug availability checked successfully', { 
+        slug: trimmedSlug,
+        available: response.data.available,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    return response;
   }
 } 

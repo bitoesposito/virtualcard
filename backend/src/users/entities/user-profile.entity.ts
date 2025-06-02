@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
 
 /**
  * UserProfile entity representing a user's profile information
@@ -47,4 +48,8 @@ export class UserProfile {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne(() => User, user => user.profile)
+  @JoinColumn({ name: 'uuid', referencedColumnName: 'profile_uuid' })
+  user: User;
 } 

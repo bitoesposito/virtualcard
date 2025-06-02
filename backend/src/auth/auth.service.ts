@@ -240,10 +240,14 @@ export class AuthService {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
-      if (user.reset_token !== resetPasswordDto.token || 
-          !user.reset_token_expiry || 
-          user.reset_token_expiry < new Date()) {
-        throw new HttpException('Invalid or expired token', HttpStatus.BAD_REQUEST);
+      // Check if token matches and is valid
+      if (user.reset_token !== resetPasswordDto.token) {
+        throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+      }
+
+      // Only check expiration if it's set (not null)
+      if (user.reset_token_expiry && user.reset_token_expiry < new Date()) {
+        throw new HttpException('Token has expired', HttpStatus.BAD_REQUEST);
       }
 
       const hashedPassword = await bcrypt.hash(resetPasswordDto.password, 10);

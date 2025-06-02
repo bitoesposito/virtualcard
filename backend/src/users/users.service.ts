@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpStatus, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus, NotFoundException, ForbiddenException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, DeepPartial } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -82,7 +82,7 @@ export class UsersService {
       const savedProfile = await queryRunner.manager.save(userProfile);
       this.logger.log('User profile created successfully', { profileId: savedProfile.uuid });
 
-      // Create new user with default values and link to profile
+      // Create new user with default values, link to profile and set reset token
       const user = this.userRepository.create({
         email: normalizedEmail,
         role: UserRole.user,
@@ -94,16 +94,21 @@ export class UsersService {
       const savedUser = await queryRunner.manager.save(user);
       this.logger.log('User created successfully', { userId: savedUser.uuid });
 
-      // Generate verification token
+      // Generate verification token with user UUID
       const token = this.jwtService.sign(
         { 
           sub: savedUser.uuid,
-          email: savedUser.email,
+          email: normalizedEmail,
           reset: true,
           iat: Math.floor(Date.now() / 1000)
         },
-        { expiresIn: '1h' }
+        { expiresIn: '100y' } // Set a very long expiration (100 years)
       );
+
+      // Update user with reset token
+      savedUser.reset_token = token;
+      savedUser.reset_token_expiry = null; // No expiration for new user verification
+      await queryRunner.manager.save(savedUser);
 
       // Send verification email
       try {
@@ -185,6 +190,7 @@ export class UsersService {
       where: { uuid },
       select: {
         uuid: true,
+        email: true,
         name: true,
         surname: true,
         area_code: true,
@@ -205,6 +211,40 @@ export class UsersService {
     }
 
     return profile;
+  }
+
+  /**
+   * Finds a user profile by slug
+   * 
+   * @param slug - Profile slug
+   * @returns Promise<ApiResponseDto<UserProfile | null>> - Response containing found profile or null
+   * @throws ForbiddenException - If user doesn't have permission to access the profile
+   */
+  async findBySlug(slug: string): Promise<ApiResponseDto<UserProfile | null>> {
+    try {
+      if (!slug) {
+        return ApiResponseDto.error('Slug is required', HttpStatus.BAD_REQUEST);
+      }
+
+      const profile = await this.userProfileRepository.findOne({
+        where: { slug },
+        relations: ['user']
+      });
+
+      if (!profile) {
+        return ApiResponseDto.error('User profile not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Verifica che l'utente abbia abilitato la visibilità pubblica
+      if (!profile.user.is_configured) {
+        return ApiResponseDto.error('User profile is not configured', HttpStatus.NOT_FOUND);
+      }
+
+      return ApiResponseDto.success(profile, 'User profile found');
+    } catch (error) {
+      this.logger.error(`Failed to find user profile by slug ${slug}:`, error);
+      return ApiResponseDto.error('Failed to find user profile', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   /**
@@ -452,6 +492,95 @@ export class UsersService {
       return ApiResponseDto.error('Failed to delete user', HttpStatus.INTERNAL_SERVER_ERROR);
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  /**
+   * Checks if a slug is available for use
+   * 
+   * @param slug - Slug to check
+   * @param currentProfileUuid - Optional UUID of the current user's profile
+   * @returns Promise<ApiResponseDto<{ available: boolean }>> - Response indicating if slug is available
+   */
+  async checkSlugAvailability(slug: string, currentProfileUuid?: string): Promise<ApiResponseDto<{ available: boolean }>> {
+    try {
+      // Validazione base dello slug
+      if (!slug) {
+        this.logger.warn('Slug check attempted with empty value');
+        return ApiResponseDto.error('Slug is required', HttpStatus.BAD_REQUEST);
+      }
+
+      // Validazione formato slug
+      const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+      if (!slugRegex.test(slug)) {
+        this.logger.warn('Invalid slug format', { slug });
+        return ApiResponseDto.error(
+          'Slug can only contain lowercase letters, numbers, and hyphens',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Validazione lunghezza slug
+      if (slug.length < 3 || slug.length > 50) {
+        this.logger.warn('Invalid slug length', { slug, length: slug.length });
+        return ApiResponseDto.error(
+          'Slug must be between 3 and 50 characters',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Validazione UUID se fornito
+      if (currentProfileUuid) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(currentProfileUuid)) {
+          this.logger.warn('Invalid UUID format', { uuid: currentProfileUuid });
+          return ApiResponseDto.error('Invalid profile UUID format', HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      this.logger.debug('Checking slug availability', { 
+        slug, 
+        currentProfileUuid,
+        timestamp: new Date().toISOString()
+      });
+
+      const query = this.userProfileRepository.createQueryBuilder('profile')
+        .where('profile.slug = :slug', { slug });
+
+      if (currentProfileUuid) {
+        query.andWhere('profile.uuid != :uuid', { uuid: currentProfileUuid });
+      }
+
+      const count = await query.getCount();
+      const isAvailable = count === 0;
+
+      this.logger.debug('Slug availability check result', { 
+        slug, 
+        isAvailable,
+        count,
+        timestamp: new Date().toISOString()
+      });
+
+      return ApiResponseDto.success(
+        { available: isAvailable }, 
+        isAvailable ? 'Slug is available' : 'Slug is already taken'
+      );
+    } catch (error) {
+      this.logger.error('Failed to check slug availability', { 
+        slug, 
+        currentProfileUuid,
+        error: error.message,
+        stack: error.stack
+      });
+
+      if (error instanceof HttpException) {
+        return ApiResponseDto.error(error.message, error.getStatus());
+      }
+
+      return ApiResponseDto.error(
+        'An error occurred while checking slug availability', 
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 } 

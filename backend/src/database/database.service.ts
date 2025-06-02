@@ -116,7 +116,7 @@ export class DatabaseService {
       
       await this.dataSource.query(
         `INSERT INTO auth_users (email, password, role, is_configured)
-         VALUES ($1, $2, $3, TRUE)`,
+         VALUES ($1, $2, $3, FALSE)`,
         [adminEmail, hashedPassword, adminRole]
       );
     }

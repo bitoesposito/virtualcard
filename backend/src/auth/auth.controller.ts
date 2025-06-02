@@ -1,5 +1,5 @@
-import { Body, Controller, Post, Patch, UseGuards, Request, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException } from '@nestjs/common';
-import { LoginDto, ForgotPasswordDto, UpdatePasswordDto } from './auth.interface';
+import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException } from '@nestjs/common';
+import { LoginDto, LoginResponse } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiResponseDto } from 'src/common/common.interface';
 
@@ -22,22 +22,10 @@ export class AuthController {
                 }
                 return 'Invalid input';
             });
-            return ApiResponseDto.error(messages.join(', '), HttpStatus.BAD_REQUEST);
+            throw new BadRequestException(messages.join(', '));
         }
     }))
-    async login(@Body() loginDto: LoginDto) {
+    async login(@Body() loginDto: LoginDto): Promise<ApiResponseDto<LoginResponse>> {
         return await this.authService.login(loginDto.email, loginDto.password);
-    }
-
-    @Post('recover')
-    @HttpCode(HttpStatus.OK)
-    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-        return await this.authService.forgotPassword(forgotPasswordDto);
-    }
-
-    @Patch('verify')
-    @HttpCode(HttpStatus.OK)
-    async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
-        return await this.authService.updatePassword(updatePasswordDto);
     }
 }

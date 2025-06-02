@@ -60,4 +60,13 @@ export class EditUserDto {
     { message: 'Slug can only contain lowercase letters, numbers, and hyphens' }
   )
   slug?: string;
+}
+
+/**
+ * Data Transfer Object for deleting a user
+ */
+export class DeleteUserDto {
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
 } 

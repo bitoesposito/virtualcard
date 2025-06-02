@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class DatabaseService {
+  private readonly logger = new Logger(DatabaseService.name);
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
@@ -29,6 +32,7 @@ export class DatabaseService {
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS user_profiles (
           uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          email VARCHAR(255) NOT NULL UNIQUE,
           name VARCHAR(255),
           surname VARCHAR(255),
           area_code VARCHAR(10),
@@ -106,19 +110,46 @@ export class DatabaseService {
       throw new Error('Missing required environment variables for admin user creation');
     }
 
-    const existingAdmin = await this.dataSource.query(
-      'SELECT 1 FROM auth_users WHERE email = $1',
-      [adminEmail]
-    );
+    const queryRunner = this.dataSource.createQueryRunner();
+    
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-    if (!existingAdmin.length) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
-      
-      await this.dataSource.query(
-        `INSERT INTO auth_users (email, password, role, is_configured)
-         VALUES ($1, $2, $3, FALSE)`,
-        [adminEmail, hashedPassword, adminRole]
+      // Check if admin exists
+      const existingAdmin = await queryRunner.query(
+        'SELECT 1 FROM auth_users WHERE email = $1',
+        [adminEmail]
       );
+
+      if (!existingAdmin.length) {
+        // Create admin profile first
+        const adminProfile = await queryRunner.query(
+          `INSERT INTO user_profiles (email, is_whatsapp_enabled, is_website_enabled, is_vcard_enabled)
+           VALUES ($1, false, false, false)
+           RETURNING uuid`,
+          [adminEmail]
+        );
+
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        
+        // Create admin user with profile reference
+        await queryRunner.query(
+          `INSERT INTO auth_users (email, password, role, is_configured, profile_uuid)
+           VALUES ($1, $2, $3, false, $4)`,
+          [adminEmail, hashedPassword, adminRole, adminProfile[0].uuid]
+        );
+
+        this.logger.log('Admin user and profile created successfully', { email: adminEmail });
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Failed to create admin user:', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 } 

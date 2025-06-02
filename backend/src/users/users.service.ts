@@ -1,6 +1,6 @@
 import { Injectable, Logger, HttpStatus, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, DeepPartial } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './users.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -64,19 +64,21 @@ export class UsersService {
       }
 
       // Create user profile first
-      const userProfile = this.userProfileRepository.create({
-        name: null,
-        surname: null,
-        area_code: null,
-        phone: null,
-        website: null,
+      const userProfileData: DeepPartial<UserProfile> = {
+        email: normalizedEmail,
+        name: undefined,
+        surname: undefined,
+        area_code: undefined,
+        phone: undefined,
+        website: undefined,
         is_whatsapp_enabled: false,
         is_website_enabled: false,
         is_vcard_enabled: false,
-        slug: null,
-        profile_photo: null
-      });
+        slug: undefined,
+        profile_photo: undefined
+      };
 
+      const userProfile = this.userProfileRepository.create(userProfileData);
       const savedProfile = await queryRunner.manager.save(userProfile);
       this.logger.log('User profile created successfully', { profileId: savedProfile.uuid });
 
@@ -153,11 +155,9 @@ export class UsersService {
           created_at: 'DESC'
         },
         select: {
-          uuid: true,
+          profile_uuid: true,
           email: true,
-          role: true,
           created_at: true,
-          updated_at: true,
           is_configured: true
         }
       });
@@ -369,5 +369,89 @@ export class UsersService {
       profile.phone &&
       profile.slug
     );
+  }
+
+  /**
+   * Deletes a user and their associated profile
+   * 
+   * @param email - Email of the user to delete
+   * @param requestingUser - User making the request
+   * @returns Promise<ApiResponseDto<undefined>> - Response indicating success or failure
+   * @throws ForbiddenException - If user doesn't have permission to delete
+   */
+  async deleteUser(email: string, requestingUser: User): Promise<ApiResponseDto<undefined>> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    
+    try {
+      this.logger.log('Starting user deletion process', { email });
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      // Find user and verify it exists
+      const userToDelete = await this.userRepository.findOne({ 
+        where: { email: email.toLowerCase() }
+      });
+
+      if (!userToDelete) {
+        this.logger.warn('User not found during deletion', { email });
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Check permissions
+      if (requestingUser.role !== UserRole.admin && requestingUser.email !== email) {
+        this.logger.warn('Unauthorized deletion attempt', { 
+          requestingUser: requestingUser.email,
+          targetUser: email
+        });
+        return ApiResponseDto.error('You can only delete your own account', HttpStatus.FORBIDDEN);
+      }
+
+      // Prevent deletion of last admin
+      if (userToDelete.role === UserRole.admin) {
+        const adminCount = await this.userRepository.count({
+          where: { role: UserRole.admin }
+        });
+
+        if (adminCount <= 1) {
+          this.logger.warn('Attempt to delete last admin user', { email });
+          return ApiResponseDto.error('Cannot delete the last admin user', HttpStatus.FORBIDDEN);
+        }
+      }
+
+      // Find and delete profile
+      if (userToDelete.profile_uuid) {
+        const profile = await this.userProfileRepository.findOne({
+          where: { uuid: userToDelete.profile_uuid }
+        });
+
+        if (profile) {
+          await queryRunner.manager.remove(profile);
+          this.logger.log('User profile deleted', { 
+            profileId: profile.uuid,
+            userId: userToDelete.uuid
+          });
+        }
+      }
+
+      // Delete user
+      await queryRunner.manager.remove(userToDelete);
+      this.logger.log('User deleted successfully', { 
+        userId: userToDelete.uuid,
+        email: userToDelete.email
+      });
+
+      await queryRunner.commitTransaction();
+      return ApiResponseDto.success(undefined, 'User deleted successfully');
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Failed to delete user:', {
+        error: error.message,
+        email
+      });
+      return ApiResponseDto.error('Failed to delete user', HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      await queryRunner.release();
+    }
   }
 } 

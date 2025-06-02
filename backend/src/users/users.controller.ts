@@ -11,12 +11,12 @@ import {
   ParseUUIDPipe,
   Param,
   NotFoundException,
-  ForbiddenException,
   Put,
+  Delete,
   Request
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, EditUserDto } from './users.dto';
+import { CreateUserDto, EditUserDto, DeleteUserDto } from './users.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/auth.interface';
@@ -75,9 +75,10 @@ export class UsersController {
 
     // Sanitize user data to return only essential information
     const formattedUsers = response.data.map(user => ({
-      uuid: user.uuid,
+      uuid: user.profile_uuid,
       email: user.email,
-      created_at: user.created_at
+      is_configured: user.is_configured,
+      created_at: user.created_at,
     }));
 
     this.logger.log('Users list retrieved successfully', { count: formattedUsers.length });
@@ -155,5 +156,22 @@ export class UsersController {
 
     this.logger.log('Profile updated successfully', { profileId: profile.uuid });
     return ApiResponseDto.success(formattedProfile, 'Profile updated successfully');
+  }
+
+  /**
+   * Deletes a user and their associated profile
+   * Requires authentication
+   * 
+   * @param deleteUserDto - Data transfer object containing the email of the user to delete
+   * @param req - Request object containing the authenticated user
+   * @returns Promise<ApiResponseDto<undefined>> - Response indicating success or failure
+   * @throws ForbiddenException - If user doesn't have permission to delete
+   */
+  @Delete('delete')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteUser(@Body() deleteUserDto: DeleteUserDto, @Request() req) {
+    this.logger.log('Deleting user', { email: deleteUserDto.email });
+    return await this.usersService.deleteUser(deleteUserDto.email, req.user);
   }
 } 

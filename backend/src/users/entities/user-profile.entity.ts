@@ -9,39 +9,42 @@ export class UserProfile {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  name: string | null;
+  @Column({ unique: true })
+  email: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  surname: string | null;
+  @Column({ nullable: true })
+  name: string;
 
-  @Column({ type: 'varchar', length: 10, nullable: true })
-  area_code: string | null;
+  @Column({ nullable: true })
+  surname: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  phone: string | null;
+  @Column({ nullable: true, length: 10 })
+  area_code: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  website: string | null;
+  @Column({ nullable: true, length: 20 })
+  phone: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ nullable: true })
+  website: string;
+
+  @Column({ default: false })
   is_whatsapp_enabled: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   is_website_enabled: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   is_vcard_enabled: boolean;
 
-  @Column({ type: 'varchar', nullable: true, unique: true })
-  slug: string | null;
+  @Column({ nullable: true, unique: true })
+  slug: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  profile_photo: string | null;
+  @Column({ nullable: true })
+  profile_photo: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn()
   updated_at: Date;
 } 

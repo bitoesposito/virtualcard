@@ -140,7 +140,7 @@ export class AuthService {
       this.resetFailedAttempts(email);
 
       const session = await this.sessionService.createSession(user.uuid, deviceInfo);
-      
+
       const result: LoginResponse = {
         access_token: session.token,
         user: {

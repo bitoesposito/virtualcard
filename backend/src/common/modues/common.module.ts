@@ -1,8 +1,8 @@
 import { Module, Global } from '@nestjs/common';
-import { LoggerService } from './services/logger.service';
-import { SessionService } from './services/session.service';
-import { EmailService } from './services/email.service';
-import { SecurityHeadersInterceptor } from './interceptors/security-headers.interceptor';
+import { LoggerService } from '../services/logger.service';
+import { SessionService } from '../services/session.service';
+import { EmailService } from '../services/email.service';
+import { SecurityHeadersInterceptor } from '../interceptors/security-headers.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Global()

@@ -1,8 +1,10 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException, UnauthorizedException, InternalServerErrorException, Get, Req, UseGuards } from '@nestjs/common';
 import { LoginResponse } from './auth.interface';
 import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from './auth.dto';
 import { ApiResponseDto } from 'src/common/common.interface';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Request } from 'express';
 
 /**
  * Controller handling authentication-related endpoints
@@ -92,5 +94,14 @@ export class AuthController {
     }))
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<ApiResponseDto<null>> {
         return this.authService.resetPassword(resetPasswordDto);
+    }
+
+    @Get('verify-token')
+    @UseGuards(JwtAuthGuard)
+    async verifyToken(@Req() req: Request) {
+        return {
+            user: req.user,
+            headers: req.headers,
+        };
     }
 }

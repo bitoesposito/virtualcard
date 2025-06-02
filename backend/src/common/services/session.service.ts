@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoggerService } from './logger.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../../auth/entities/user.entity';
 
 export interface Session {
   userId: string;
@@ -17,13 +20,25 @@ export class SessionService {
 
   constructor(
     private readonly jwtService: JwtService,
-    logger: LoggerService
+    logger: LoggerService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) {
     this.logger = logger;
   }
 
   async createSession(userId: string, deviceInfo?: string): Promise<Session> {
-    const token = this.jwtService.sign({ sub: userId });
+    const user = await this.userRepository.findOne({ where: { uuid: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const token = this.jwtService.sign({ 
+      sub: userId,
+      email: user.email,
+      role: user.role
+    });
+    
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
 

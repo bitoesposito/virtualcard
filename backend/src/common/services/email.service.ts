@@ -119,7 +119,7 @@ export class EmailService implements OnModuleInit {
       case 'verification':
         return `
           <h1>Welcome!</h1>
-          <p>To verify your account, click the following link:</p>
+                <p>To verify your account, click the following link:</p>
           <a href="${baseUrl}/verify?token=${token}">Verify Account</a>
           <p>This link will expire in 10 minutes.</p>
           <p>If you didn't request this verification, please ignore this email.</p>

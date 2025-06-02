@@ -11,6 +11,7 @@ import { SecurityHeadersInterceptor } from '../common/interceptors/security-head
 import { LoggerService } from '../common/services/logger.service';
 import { SessionService } from '../common/services/session.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 /**
  * Authentication module configuration
@@ -39,6 +40,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         EmailService,
         LoggerService,
         SessionService,
+        JwtStrategy,
         {
             provide: APP_INTERCEPTOR,
             useClass: SecurityHeadersInterceptor,

@@ -8,14 +8,22 @@ type EmailType = 'verification' | 'password-reset';
 export class MailService {
     private transporter: nodemailer.Transporter;
     private frontendUrl: string;
+    private fromEmail: string;
 
     constructor(private configService: ConfigService) {
+        const smtpUser = this.configService.get<string>('SMTP_USER');
+        if (!smtpUser) {
+            throw new Error('SMTP_USER is not defined in environment variables');
+        }
+        this.fromEmail = smtpUser;
+
         this.transporter = nodemailer.createTransport({
-            host: this.configService.get<string>('MAILTRAP_HOST'),
-            port: this.configService.get<number>('MAILTRAP_PORT'),
+            host: this.configService.get<string>('SMTP_HOST'),
+            port: this.configService.get<number>('SMTP_PORT'),
+            secure: true,
             auth: {
-                user: this.configService.get<string>('MAILTRAP_USER'),
-                pass: this.configService.get<string>('MAILTRAP_PASSWORD'),
+                user: smtpUser,
+                pass: this.configService.get<string>('SMTP_PASS'),
             },
         });
         this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
@@ -31,7 +39,7 @@ export class MailService {
                 mailOptions = {
                     from: {
                         name: 'VCarder',
-                        address: 'noreply@vcarder.com'
+                        address: this.fromEmail
                     },
                     to: {
                         name: email.split('@')[0],
@@ -69,7 +77,7 @@ export class MailService {
                 mailOptions = {
                     from: {
                         name: 'VCarder',
-                        address: 'noreply@vcarder.com'
+                        address: this.fromEmail
                     },
                     to: {
                         name: email.split('@')[0],

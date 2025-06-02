@@ -3,9 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
 import { User } from './entities/user.entity';
 import { RolesGuard } from './guards/roles.guard';
+import { EmailService } from 'src/common/services/email.service';
+import { AuthService } from './auth.service';
+import { SecurityHeadersInterceptor } from '../common/interceptors/security-headers.interceptor';
+import { LoggerService } from '../common/services/logger.service';
+import { SessionService } from '../common/services/session.service';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 /**
  * Authentication module configuration
@@ -28,7 +33,17 @@ import { RolesGuard } from './guards/roles.guard';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, RolesGuard],
-    exports: [AuthService, RolesGuard],
+    providers: [
+        AuthService,
+        RolesGuard,
+        EmailService,
+        LoggerService,
+        SessionService,
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: SecurityHeadersInterceptor,
+        }
+    ],
+    exports: [AuthService, RolesGuard, EmailService, LoggerService, SessionService],
 })
 export class AuthModule {}

@@ -38,6 +38,19 @@ export interface LoginResponse {
     user: {
         uuid: string;      // User UUID
         email: string;     // User email
-        role: string;      // User role
+        role: UserRole;    // User role
     };
+}
+
+export interface LoginAttempt {
+    count: number;
+    timestamp: number;
+    lockedUntil?: number;
+}
+
+export interface SecurityConfig {
+    maxLoginAttempts: number;
+    lockoutDuration: number; // in milliseconds
+    rateLimitWindow: number; // in milliseconds
+    maxRequestsPerWindow: number;
 }

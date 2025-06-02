@@ -1,12 +1,12 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { LoginResponse } from './auth.interface';
-import { LoginDto } from './auth.dto';
-import { AuthService } from './auth.service';
+import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from './auth.dto';
 import { ApiResponseDto } from 'src/common/common.interface';
+import { AuthService } from './auth.service';
 
 /**
  * Controller handling authentication-related endpoints
- * Manages user login and authentication processes
+ * Manages user login, password recovery, and authentication processes
  */
 @Controller('auth')
 export class AuthController {
@@ -52,5 +52,45 @@ export class AuthController {
             }
             return ApiResponseDto.error<LoginResponse>('An unexpected error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Handles password recovery requests
+     * Sends a password reset link if the email is registered
+     * 
+     * @param forgotPasswordDto - Email address for password recovery
+     * @returns Promise<ApiResponseDto<any>> - Success response with token expiry
+     * @throws BadRequestException - If input validation fails
+     * @throws HttpException - If rate limit exceeded or other errors occur
+     */
+    @Post('recover')
+    @HttpCode(HttpStatus.OK)
+    @UsePipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true
+    }))
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<ApiResponseDto<any>> {
+        return this.authService.forgotPassword(forgotPasswordDto.email);
+    }
+
+    /**
+     * Handles password reset requests
+     * Verifies the reset token and updates the user's password
+     * 
+     * @param resetPasswordDto - Reset password data (token and new password)
+     * @returns Promise<ApiResponseDto<null>> - Success response
+     * @throws BadRequestException - If input validation fails
+     * @throws HttpException - If token is invalid or expired
+     */
+    @Post('verify')
+    @HttpCode(HttpStatus.OK)
+    @UsePipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true
+    }))
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<ApiResponseDto<null>> {
+        return this.authService.resetPassword(resetPasswordDto);
     }
 }

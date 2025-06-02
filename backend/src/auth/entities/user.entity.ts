@@ -23,6 +23,18 @@ export class User {
     })
     role: UserRole;
 
+    @Column({ default: false })
+    is_configured: boolean;
+
+    @Column({ nullable: true })
+    profile_uuid: string;
+
+    @Column({ nullable: true, type: 'varchar' })
+    reset_token: string | null;
+
+    @Column({ nullable: true, type: 'timestamp' })
+    reset_token_expiry: Date | null;
+
     @CreateDateColumn()
     created_at: Date;
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { LoginDto, LoginResponse } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiResponseDto } from 'src/common/common.interface';
@@ -26,6 +26,16 @@ export class AuthController {
         }
     }))
     async login(@Body() loginDto: LoginDto): Promise<ApiResponseDto<LoginResponse>> {
-        return await this.authService.login(loginDto.email, loginDto.password);
+        try {
+            return await this.authService.login(loginDto.email, loginDto.password);
+        } catch (error) {
+            if (error instanceof UnauthorizedException) {
+                return ApiResponseDto.error<LoginResponse>(error.message, HttpStatus.UNAUTHORIZED);
+            }
+            if (error instanceof InternalServerErrorException) {
+                return ApiResponseDto.error<LoginResponse>(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return ApiResponseDto.error<LoginResponse>('An unexpected error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

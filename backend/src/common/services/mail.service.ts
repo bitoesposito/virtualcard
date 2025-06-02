@@ -1,118 +1,70 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
-type EmailType = 'verification' | 'password-reset';
-
 @Injectable()
 export class MailService {
+    private readonly logger = new Logger(MailService.name);
     private transporter: nodemailer.Transporter;
     private frontendUrl: string;
     private fromEmail: string;
 
     constructor(private configService: ConfigService) {
-        const smtpUser = this.configService.get<string>('SMTP_USER');
-        if (!smtpUser) {
-            throw new Error('SMTP_USER is not defined in environment variables');
-        }
-        this.fromEmail = smtpUser;
+        this.initializeTransporter();
+        this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+    }
 
-        this.transporter = nodemailer.createTransport({
+    private async initializeTransporter() {
+        const smtpConfig = {
             host: this.configService.get<string>('SMTP_HOST'),
             port: this.configService.get<number>('SMTP_PORT'),
             secure: true,
             auth: {
-                user: smtpUser,
+                user: this.configService.get<string>('SMTP_USER'),
                 pass: this.configService.get<string>('SMTP_PASS'),
             },
-        });
-        this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+        };
+
+        this.transporter = nodemailer.createTransport(smtpConfig);
     }
 
-    async sendEmail(email: string, token: string, type: EmailType): Promise<void> {
-        const fullUrl = `${this.frontendUrl}/verify?token=${token}`;
-        
-        let mailOptions: nodemailer.SendMailOptions;
-        
-        switch (type) {
-            case 'verification':
-                mailOptions = {
-                    from: {
-                        name: 'VCarder',
-                        address: this.fromEmail
-                    },
-                    to: {
-                        name: email.split('@')[0],
-                        address: email
-                    },
-                    subject: 'Verifica il tuo account',
-                    text: `Benvenuto su VCarder!\n\nPer verificare il tuo account, clicca sul link seguente:\n${fullUrl}\n\nSe non hai richiesto questa verifica, ignora questa email.`,
-                    html: `
-                        <!DOCTYPE html>
-                        <html>
-                            <head>
-                                <meta charset="utf-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>Verifica il tuo account</title>
-                            </head>
-
-                            <body
-                                style="font-family: Arial, sans-serif;color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-                                <h1 style="color: #2c3e50;">Benvenuto su VCarder!</h1>
-                                <p>Per verificare il tuo account, clicca sul link seguente:</p>
-                                <p style="margin: 20px 0;">
-                                    <a href="${fullUrl}"
-                                        style="background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verifica
-                                        Account</a>
-                                </p>
-                                <hr>
-                                <p style="color: #7f8c8d; font-size: 0.9em;">Se non hai richiesto questa verifica, ignora questa email.</p>
-                            </body>
-                        </html>
-                    `,
-                };
-                break;
-            
-            case 'password-reset':
-                mailOptions = {
-                    from: {
-                        name: 'VCarder',
-                        address: this.fromEmail
-                    },
-                    to: {
-                        name: email.split('@')[0],
-                        address: email
-                    },
-                    subject: 'Reset Password',
-                    text: `Reset Password\n\nPer resettare la tua password, clicca sul link seguente:\n${fullUrl}\n\nSe non hai richiesto il reset della password, ignora questa email.`,
-                    html: `
-                        <!DOCTYPE html>
-                        <html>
-                            <head>
-                                <meta charset="utf-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>Reset Password</title>
-                            </head>
-                            <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-                                <h1 style="color: #2c3e50;">Reset Password</h1>
-                                <p>Per resettare la tua password, clicca sul link seguente:</p>
-                                <p style="margin: 20px 0;">
-                                    <a href="${fullUrl}" style="background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
-                                </p>
-                                <hr>
-                                <p style="color: #7f8c8d; font-size: 0.9em;">Se non hai richiesto il reset della password, ignora questa email.</p>
-                            </body>
-                        </html>
-                    `,
-                };
-                break;
-        }
-
+    async sendEmail(to: string, token: string, type: 'verification' | 'reset'): Promise<void> {
         try {
-            await this.transporter.sendMail(mailOptions);
+            const subject = type === 'verification' 
+                ? 'Verify your email address'
+                : 'Reset your password';
+
+            const verificationUrl = `${this.frontendUrl}/verify-email?token=${token}`;
+            const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
+            const url = type === 'verification' ? verificationUrl : resetUrl;
+
+            const html = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">${subject}</h2>
+                    <p>Please click the button below to ${type === 'verification' ? 'verify your email address' : 'reset your password'}.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${url}" 
+                            style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                            ${type === 'verification' ? 'Verify Email' : 'Reset Password'}
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't request this, you can safely ignore this email.
+                    </p>
+                </div>
+            `;
+
+            await this.transporter.sendMail({
+                from: this.configService.get<string>('SMTP_USER'),
+                to,
+                subject,
+                html,
+            });
+
+            this.logger.log(`Email sent successfully to ${to}`);
         } catch (error) {
-            console.error(`Error sending ${type} email:`, error);
-            throw new Error(`Failed to send ${type} email`);
+            this.logger.error(`Failed to send email to ${to}:`, error);
+            throw error;
         }
     }
 } 

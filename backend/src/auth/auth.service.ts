@@ -1,14 +1,13 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, UnauthorizedException, InternalServerErrorException, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { ApiResponseDto } from 'src/common/common.interface';
-import { EmailService } from 'src/common/services/email.service';
+import { MailService } from 'src/common/services/mail.service';
 import { User } from './entities/user.entity';
 import { LoginResponse, LoginAttempt, SecurityConfig } from './auth.interface';
 import { ResetPasswordDto } from './auth.dto';
-import { LoggerService } from '../common/services/logger.service';
 import { SessionService } from '../common/services/session.service';
 
 /**
@@ -34,13 +33,14 @@ export class AuthService {
     maxRequestsPerWindow: 3
   };
 
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly emailService: EmailService,
-    private readonly logger: LoggerService,
-    private readonly sessionService: SessionService
+    private readonly sessionService: SessionService,
+    private readonly mailService: MailService,
   ) { }
 
   /**
@@ -117,7 +117,7 @@ export class AuthService {
    */
   async login(email: string, password: string, deviceInfo?: string): Promise<ApiResponseDto<LoginResponse>> {
     try {
-      this.logger.info('Login attempt', 'AuthService', { email });
+      this.logger.log('Login attempt', { email });
       this.checkAccountLock(email);
       this.checkRateLimit(email);
 
@@ -150,14 +150,14 @@ export class AuthService {
         }
       };
 
-      this.logger.info('Login successful', 'AuthService', { userId: user.uuid });
+      this.logger.log('Login successful', { userId: user.uuid });
       return ApiResponseDto.success(result, 'Login successful');
 
     } catch (error) {
       if (error instanceof UnauthorizedException || error instanceof InternalServerErrorException) {
         throw error;
       }
-      this.logger.error('Login error', 'AuthService', { email, error: error.message });
+      this.logger.error('Login error', { email, error: error.message });
       throw new InternalServerErrorException('An error occurred during authentication');
     }
   }
@@ -196,15 +196,15 @@ export class AuthService {
       user.reset_token_expiry = new Date(Date.now() + 10 * 60 * 1000);
       await this.userRepository.save(user);
       
-      await this.emailService.sendEmail(user.email, token, 'password-reset');
-      this.logger.info('Password reset email sent', 'AuthService', { userId: user.uuid });
+      await this.mailService.sendEmail(user.email, token, 'reset');
+      this.logger.log('Password reset email sent', { userId: user.uuid });
 
       return ApiResponseDto.success(
         { expiresIn: 600 },
         'If email is registered, will receive a reset link'
       );
     } catch (error) {
-      this.logger.error('Password reset failed', 'AuthService', { email, error: error.message });
+      this.logger.error('Password reset failed', { email, error: error.message });
       if (error instanceof HttpException) {
         return ApiResponseDto.error(error.message, error.getStatus());
       }
@@ -256,14 +256,36 @@ export class AuthService {
       // Invalidate all existing sessions
       await this.sessionService.invalidateAllUserSessions(user.uuid);
       
-      this.logger.info('Password reset successful', 'AuthService', { userId: user.uuid });
+      this.logger.log('Password reset successful', { userId: user.uuid });
       return ApiResponseDto.success(null, 'Password has been reset successfully');
     } catch (error) {
-      this.logger.error('Password reset failed', 'AuthService', { error: error.message });
+      this.logger.error('Password reset failed', { error: error.message });
       if (error instanceof HttpException) {
         return ApiResponseDto.error(error.message, error.getStatus());
       }
       return ApiResponseDto.error('An error occurred during password reset', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { email: email.toLowerCase() }
+    });
+    if (!user) {
+      this.logger.warn('Password reset requested for non-existent user', { email });
+      return;
+    }
+
+    const token = this.jwtService.sign(
+      { 
+        sub: user.uuid,
+        email: user.email,
+        reset: true,
+        iat: Math.floor(Date.now() / 1000)
+      },
+      { expiresIn: '10m' }
+    );
+
+    await this.mailService.sendEmail(user.email, token, 'reset');
   }
 }

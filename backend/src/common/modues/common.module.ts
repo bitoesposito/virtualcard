@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { LoggerService } from '../services/logger.service';
 import { SessionService } from '../services/session.service';
-import { EmailService } from '../services/email.service';
+import { MailService } from '../services/mail.service';
 import { SecurityHeadersInterceptor } from '../interceptors/security-headers.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
@@ -10,7 +10,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
   providers: [
     LoggerService,
     SessionService,
-    EmailService,
+    MailService,
     {
       provide: APP_INTERCEPTOR,
       useClass: SecurityHeadersInterceptor,
@@ -19,7 +19,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
   exports: [
     LoggerService,
     SessionService,
-    EmailService,
+    MailService,
     SecurityHeadersInterceptor,
   ],
 })

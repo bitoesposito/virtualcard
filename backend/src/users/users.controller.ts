@@ -11,10 +11,12 @@ import {
   ParseUUIDPipe,
   Param,
   NotFoundException,
-  ForbiddenException
+  ForbiddenException,
+  Put,
+  Request
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './users.dto';
+import { CreateUserDto, EditUserDto } from './users.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/auth.interface';
@@ -108,5 +110,50 @@ export class UsersController {
       this.logger.error('Failed to retrieve user details', { uuid, error: error.message });
       throw error;
     }
+  }
+
+  /**
+   * Updates a user's profile
+   * Requires authentication
+   * 
+   * @param editUserDto - Data transfer object containing profile update details
+   * @param req - Request object containing authenticated user
+   * @returns Promise<ApiResponseDto<UserProfile>> - Response containing updated profile
+   * @throws ForbiddenException - If user doesn't have permission to update the profile
+   */
+  @Put('edit')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async editUser(@Body() editUserDto: EditUserDto, @Request() req) {
+    this.logger.log('Updating user profile', { email: req.user.email });
+    const response = await this.usersService.editUser(req.user.email, editUserDto, req.user);
+    
+    if (!response.success || !response.data) {
+      this.logger.error('Failed to update profile', { 
+        email: req.user.email, 
+        error: response.message 
+      });
+      return response;
+    }
+
+    const profile = response.data;
+    const formattedProfile = {
+      uuid: profile.uuid,
+      name: profile.name,
+      surname: profile.surname,
+      area_code: profile.area_code,
+      phone: profile.phone,
+      website: profile.website,
+      is_whatsapp_enabled: profile.is_whatsapp_enabled,
+      is_website_enabled: profile.is_website_enabled,
+      is_vcard_enabled: profile.is_vcard_enabled,
+      slug: profile.slug,
+      profile_photo: profile.profile_photo,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at
+    };
+
+    this.logger.log('Profile updated successfully', { profileId: profile.uuid });
+    return ApiResponseDto.success(formattedProfile, 'Profile updated successfully');
   }
 } 

@@ -1,6 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { UserRole } from '../auth.interface';
 
+/**
+ * User entity representing a system user
+ * Maps to the 'auth_users' table in the database
+ */
 @Entity('auth_users')
 export class User {
     @PrimaryGeneratedColumn('uuid')

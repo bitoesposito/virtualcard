@@ -7,6 +7,10 @@ import { User } from './entities/user.entity';
 import { LoginResponse } from './auth.interface';
 import { ApiResponseDto } from 'src/common/common.interface';
 
+/**
+ * Service handling authentication business logic
+ * Manages user authentication, JWT token generation, and password verification
+ */
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -17,11 +21,20 @@ export class AuthService {
     private readonly jwtService: JwtService
   ) { }
 
+  /**
+   * Authenticates a user and generates a JWT token
+   * 
+   * @param email - User's email address
+   * @param password - User's password
+   * @returns Promise<ApiResponseDto<LoginResponse>> - Login response with JWT token and user data
+   * @throws UnauthorizedException - If credentials are invalid
+   * @throws InternalServerErrorException - If server error occurs
+   */
   async login(email: string, password: string): Promise<ApiResponseDto<LoginResponse>> {
     try {
       this.logger.log(`Login attempt for email: ${email}`);
 
-      // Verifica connessione al database
+      // Verify database connection
       try {
         await this.userRepository.query('SELECT 1');
       } catch (error) {
@@ -29,6 +42,7 @@ export class AuthService {
         throw new InternalServerErrorException('Database connection error');
       }
 
+      // Find user by email
       const user = await this.userRepository.findOne({
         where: { email: email.toLowerCase() }
       });
@@ -38,7 +52,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Verifica password
+      // Verify password
       let isPasswordValid = false;
       try {
         isPasswordValid = await bcrypt.compare(password, user.password);
@@ -52,7 +66,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Genera JWT
+      // Generate JWT token
       let access_token: string;
       try {
         const payload = {
@@ -85,46 +99,4 @@ export class AuthService {
       throw new InternalServerErrorException('An error occurred during login');
     }
   }
-
-  // generateJwt(payload: JwtPayload) {
-  //   return console.log('generateJwt');
-  // }
-
-  // private checkRateLimit(email: string) {
-  //   return console.log('checkRateLimit');
-  // }
-
-
-  // generateResetToken(payload: JwtPayload) {
-  //   return console.log('generateResetToken');
-  // }
-
-  // hashPassword(password: string): Observable<string> {
-  //   return from(bcrypt.hash(password, 12));
-  // }
-
-  // comparePassword(password: string, hash: string): Observable<boolean> {
-  //   return from(bcrypt.compare(password, hash));
-  // }
-
-  // async forgotPassword(dto: ForgotPasswordDto) {
-  //   return console.log('forgotPassword');
-  // }
-
-  // async updatePassword(dto: UpdatePasswordDto) {
-  //   return console.log('updatePassword');
-  // }
-
-  // async findByEmail(email: string) {
-  //   return console.log('findByEmail');
-  // }
-
-  // private getTokenExpiration(token: string): number {
-  //   try {
-  //     const decoded = this.jwtService.decode(token);
-  //     return typeof decoded === 'object' && decoded?.exp ? decoded.exp : 0;
-  //   } catch {
-  //     return 0;
-  //   }
-  // }
 }

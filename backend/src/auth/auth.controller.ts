@@ -1,14 +1,29 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, UsePipes, BadRequestException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
-import { LoginDto, LoginResponse } from './auth.interface';
+import { LoginResponse } from './auth.interface';
+import { LoginDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { ApiResponseDto } from 'src/common/common.interface';
 
+/**
+ * Controller handling authentication-related endpoints
+ * Manages user login and authentication processes
+ */
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService
     ) { }
 
+    /**
+     * Handles user login requests
+     * Validates input data and returns JWT token on success
+     * 
+     * @param loginDto - Login credentials (email and password)
+     * @returns Promise<ApiResponseDto<LoginResponse>> - Login response with JWT token and user data
+     * @throws BadRequestException - If input validation fails
+     * @throws UnauthorizedException - If credentials are invalid
+     * @throws InternalServerErrorException - If server error occurs
+     */
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @UsePipes(new ValidationPipe({

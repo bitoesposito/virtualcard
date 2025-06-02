@@ -7,9 +7,16 @@ import { AuthService } from './auth.service';
 import { User } from './entities/user.entity';
 import { RolesGuard } from './guards/roles.guard';
 
+/**
+ * Authentication module configuration
+ * Handles user authentication, JWT token generation, and role-based access control
+ */
 @Module({
     imports: [
+        // Database configuration for User entity
         TypeOrmModule.forFeature([User]),
+        
+        // JWT configuration with async options
         JwtModule.registerAsync({
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({

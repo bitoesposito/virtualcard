@@ -1,89 +1,43 @@
 import { IsEmail, IsString, MinLength, MaxLength, Matches, IsNotEmpty } from 'class-validator';
 import { SetMetadata } from '@nestjs/common';
 
+/**
+ * Enum defining the available user roles in the system
+ */
 export enum UserRole {
     admin = 'admin',
     user = 'user',
 }
 
+/**
+ * Key used for storing roles in metadata
+ */
 export const ROLES_KEY = 'roles';
+
+/**
+ * Decorator for specifying required roles for a route or controller
+ * @param roles - Array of UserRole values
+ */
 export const Roles = (...roles: UserRole[]) => SetMetadata(ROLES_KEY, roles);
 
+/**
+ * Interface for JWT payload structure
+ */
 export interface JwtPayload {
-    sub: string;
-    email: string;
-    role: UserRole;
-    iat?: number;
+    sub: string;      // User UUID
+    email: string;    // User email
+    role: UserRole;   // User role
+    iat?: number;     // Token issued at timestamp
 }
 
+/**
+ * Interface for login response structure
+ */
 export interface LoginResponse {
-    access_token: string;
+    access_token: string;  // JWT token
     user: {
-        uuid: string;
-        email: string;
-        role: string;
+        uuid: string;      // User UUID
+        email: string;     // User email
+        role: string;      // User role
     };
 }
-
-export class LoginDto {
-    @IsEmail({}, { message: 'Invalid email format' })
-    @IsNotEmpty({ message: 'Email is required' })
-    @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
-    email: string;
-
-    @IsString()
-    @IsNotEmpty({ message: 'Password is required' })
-    @MinLength(8, { message: 'Password must be at least 8 characters' })
-    @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
-    @Matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
-        {
-            message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character'
-        }
-    )
-    password: string;
-}
-
-// export class ForgotPasswordDto {
-//     @IsEmail({}, { message: VALIDATION_MESSAGES.EMAIL })
-//     @IsNotEmpty({ message: 'Email is required' })
-//     @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
-//     email: string;
-// }
-
-// export class UpdatePasswordDto {
-//     @IsString()
-//     @IsNotEmpty({ message: 'Token is required' })
-//     @MaxLength(1000, { message: 'Invalid token' })
-//     token: string;
-
-//     @IsString()
-//     @IsNotEmpty({ message: 'New password is required' })
-//     @MinLength(8, { message: 'Password must be at least 8 characters' })
-//     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
-//     @Matches(
-//         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
-//         {
-//             message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?])'
-//         }
-//     )
-//     new_password: string;
-
-//     @IsString()
-//     @IsNotEmpty({ message: 'Password confirmation is required' })
-//     @MinLength(8, { message: 'Password must be at least 8 characters' })
-//     @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
-//     @Matches(
-//         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
-//         {
-//             message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_+-=[]{};\':"\\|,.<>/?])'
-//         }
-//     )
-//     confirm_password: string;
-// }
-
-// interface ForgotPasswordResponse {
-//   expiresIn: number;
-//   url?: string;
-// }
-

@@ -8,7 +8,7 @@ COPY package*.json ./
 
 # Installa le dipendenze
 RUN npm install && \
-    npm install -g @angular/cli@19.2.10
+npm install -g @angular/cli@19.2.10
 
 # Copia il resto del codice
 COPY . .

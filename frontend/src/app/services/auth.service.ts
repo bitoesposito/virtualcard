@@ -37,7 +37,7 @@ export class AuthService {
    * @returns Observable with verification response
    */
   verifyToken(data: VerifyRequest): Observable<ApiResponse<null>> {
-    return this.http.patch<ApiResponse<null>>(`${this.API_URL}/auth/verify`, data);
+    return this.http.post<ApiResponse<null>>(`${this.API_URL}/auth/verify`, data);
   }
 
   /**

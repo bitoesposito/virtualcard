@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:3000' // You should replace this with your production API URL
+  apiUrl: 'http://localhost:3000' // Use the Docker service name
 };

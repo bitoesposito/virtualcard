@@ -153,9 +153,6 @@ export class UsersService {
   async findAll(): Promise<ApiResponseDto<User[]>> {
     try {
       const users = await this.userRepository.find({
-        where: {
-          role: UserRole.user // Only get non-admin users
-        },
         order: {
           created_at: 'DESC'
         },
@@ -181,13 +178,32 @@ export class UsersService {
   /**
    * Finds a user profile by UUID
    * 
-   * @param uuid - Profile UUID
+   * @param uuid - User UUID
    * @returns Promise<UserProfile> - Found profile data
    * @throws NotFoundException - If profile is not found
    */
   async findByUuid(uuid: string): Promise<UserProfile> {
+    // First try to find a user with this UUID
+    const user = await this.userRepository.findOne({ 
+      where: { uuid }
+    });
+
+    let profileUuid: string;
+
+    if (user) {
+      // If we found a user, use their profile_uuid
+      if (!user.profile_uuid) {
+        throw new NotFoundException(`User with UUID ${uuid} has no profile`);
+      }
+      profileUuid = user.profile_uuid;
+    } else {
+      // If no user found, assume the UUID is a profile UUID
+      profileUuid = uuid;
+    }
+
+    // Find the profile using the profile_uuid
     const profile = await this.userProfileRepository.findOne({ 
-      where: { uuid },
+      where: { uuid: profileUuid },
       select: {
         uuid: true,
         email: true,
@@ -207,7 +223,7 @@ export class UsersService {
     });
 
     if (!profile) {
-      throw new NotFoundException(`Profile with UUID ${uuid} not found`);
+      throw new NotFoundException(`Profile with UUID ${profileUuid} not found`);
     }
 
     return profile;

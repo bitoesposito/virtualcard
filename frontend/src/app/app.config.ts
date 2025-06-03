@@ -8,6 +8,7 @@ import Aura from '@primeng/themes/aura';
 import { routes } from './app.routes';
 import { definePreset } from '@primeng/themes';
 import { errorInterceptor } from './interceptors/error.interceptor';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
 const theme = definePreset(Aura, {
   primitive: {
@@ -678,7 +679,7 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     provideHttpClient(
-      withInterceptors([errorInterceptor])
+      withInterceptors([errorInterceptor, authInterceptor])
     )
   ]
 };

@@ -28,6 +28,7 @@ export interface UserDetails extends User {
   uuid: string;
   role: UserRole;
   createdAt: string;
+  is_configured: boolean;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 /**
@@ -8,6 +8,8 @@ import { AuthGuard } from '@nestjs/passport';
  */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+    private readonly logger = new Logger(JwtAuthGuard.name);
+
     /**
      * Determines if the request can be activated
      * Delegates to the parent class's canActivate method
@@ -16,6 +18,31 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
      * @returns Promise<boolean> - True if request is authorized
      */
     canActivate(context: ExecutionContext) {
+        const request = context.switchToHttp().getRequest();
+        this.logger.debug('JWT Guard - Checking request', {
+            path: request.path,
+            method: request.method,
+            hasAuthHeader: !!request.headers.authorization
+        });
+
         return super.canActivate(context);
+    }
+
+    handleRequest(err: any, user: any, info: any) {
+        if (err || !user) {
+            this.logger.error('JWT Guard - Authentication failed', {
+                error: err?.message,
+                info: info?.message,
+                hasUser: !!user
+            });
+            throw err || new Error('Authentication failed');
+        }
+
+        this.logger.debug('JWT Guard - Authentication successful', {
+            userId: user.uuid,
+            role: user.role
+        });
+
+        return user;
     }
 }

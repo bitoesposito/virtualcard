@@ -81,6 +81,7 @@ export class AuthService {
    */
   private resetFailedAttempts(email: string): void {
     this.loginAttempts.delete(email);
+    this.rateLimitMap.delete(email);
   }
 
   /**
@@ -126,6 +127,7 @@ export class AuthService {
       });
 
       if (!user) {
+        this.logger.warn('Login failed - User not found', { email });
         this.recordFailedAttempt(email);
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -133,13 +135,16 @@ export class AuthService {
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
+        this.logger.warn('Login failed - Invalid password', { email });
         this.recordFailedAttempt(email);
         throw new UnauthorizedException('Invalid credentials');
       }
 
+      this.logger.log('Login successful - Resetting failed attempts', { email, role: user.role });
       this.resetFailedAttempts(email);
 
       const session = await this.sessionService.createSession(user.uuid, deviceInfo);
+      this.logger.log('Session created', { userId: user.uuid, token: session.token });
 
       const result: LoginResponse = {
         access_token: session.token,
@@ -150,14 +155,28 @@ export class AuthService {
         }
       };
 
-      this.logger.log('Login successful', { userId: user.uuid });
+      this.logger.log('Login process completed successfully', { 
+        userId: user.uuid,
+        role: user.role,
+        token: session.token
+      });
+      
       return ApiResponseDto.success(result, 'Login successful');
 
     } catch (error) {
       if (error instanceof UnauthorizedException || error instanceof InternalServerErrorException) {
+        this.logger.error('Login error - Known exception', { 
+          email, 
+          errorType: error.constructor.name,
+          errorMessage: error.message 
+        });
         throw error;
       }
-      this.logger.error('Login error', { email, error: error.message });
+      this.logger.error('Login error - Unexpected error', { 
+        email, 
+        error: error.message,
+        stack: error.stack 
+      });
       throw new InternalServerErrorException('An error occurred during authentication');
     }
   }

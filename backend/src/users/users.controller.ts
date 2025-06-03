@@ -14,7 +14,8 @@ import {
   Put,
   Delete,
   Request,
-  BadRequestException
+  BadRequestException,
+  ForbiddenException
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, EditUserDto, DeleteUserDto } from './users.dto';
@@ -119,44 +120,34 @@ export class UsersController {
 
   /**
    * Retrieves a specific user by UUID
-   * Requires admin role
+   * Requires admin role or ownership of the profile
    * 
    * @param uuid - User's UUID
+   * @param req - Request object containing authenticated user
    * @returns Promise<ApiResponseDto<User>> - Response containing user details
    * @throws NotFoundException - If user is not found
-   * @throws ForbiddenException - If user doesn't have admin role
+   * @throws ForbiddenException - If user doesn't have permission to access the profile
    */
   @Get('by-id/:uuid')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin)
+  @Roles(UserRole.admin, UserRole.user)
   @HttpCode(HttpStatus.OK)
-  async getUser(@Param('uuid', ParseUUIDPipe) uuid: string) {
-    this.logger.log('Retrieving user details', { 
-      uuid,
-      timestamp: new Date().toISOString()
-    });
-
+  async getUser(@Param('uuid', ParseUUIDPipe) uuid: string, @Request() req) {
     try {
+      // Check if user is admin or is requesting their own profile
+      if (req.user.role !== UserRole.admin && req.user.uuid !== uuid) {
+        throw new ForbiddenException('You can only access your own profile');
+      }
+
       const user = await this.usersService.findByUuid(uuid);
-      this.logger.log('User details retrieved successfully', { 
-        uuid,
-        timestamp: new Date().toISOString()
-      });
       return ApiResponseDto.success(user, 'User details retrieved successfully');
     } catch (error) {
       if (error instanceof NotFoundException) {
-        this.logger.warn('User not found', { 
-          uuid,
-          timestamp: new Date().toISOString()
-        });
         throw error;
       }
-      this.logger.error('Failed to retrieve user details', { 
-        uuid, 
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString()
-      });
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw error;
     }
   }

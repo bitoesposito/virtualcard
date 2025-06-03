@@ -53,18 +53,20 @@
 
 		<div class="flex gap-1 flex-column">
 			<label for="slug">Profile Link</label>
-			<input id="slug" type="text" pInputText formControlName="slug" [class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" placeholder="Enter your profile link">
+			<input id="slug" type="text" pInputText formControlName="slug" 
+				[class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" 
+				placeholder="Enter your profile link">
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['required'] && form.get('slug')?.touched">
 				Profile link is required
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['pattern'] && form.get('slug')?.touched">
-				The slug must contain only lowercase letters, numbers and hyphens (3-50 characters)
+				The profile link must contain only lowercase letters, numbers and hyphens (3-50 characters)
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['minlength'] && form.get('slug')?.touched">
-				The slug must be at least 3 characters long
+				The profile link must be at least 3 characters long
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['maxlength'] && form.get('slug')?.touched">
-				The slug cannot exceed 50 characters
+				The profile link cannot exceed 50 characters
 			</small>
 			<small class="text-red-500" *ngIf="slugError">
 				{{ slugError }}
@@ -74,31 +76,31 @@
 		<p-divider />
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" binary="true" />
+			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="websiteSelect" class="ml-2">
 					Enable website button
-					<p class="text-xs  text-color-secondary">Show the website button on your public profile</p>
+					<p class="text-xs text-color-secondary">Show the website button on your public profile</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" binary="true" />
+			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="whatsappSelect" class="ml-2">
 					Enable WhatsApp button
-					<p class="text-xs  text-color-secondary">Show the WhatsApp button on your public profile to send a message to the associated number</p>
+					<p class="text-xs text-color-secondary">Show the WhatsApp button on your public profile to send a message to the associated number</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" binary="true" />
+			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="vCardSelect" class="ml-2">
 					Enable vCard button
-					<p class="text-xs  text-color-secondary">Show the vCard button on your public profile to save your contact details on mobile devices</p>
+					<p class="text-xs text-color-secondary">Show the vCard button on your public profile to save your contact details on mobile devices</p>
 				</label>
 			</div>
 		</div>

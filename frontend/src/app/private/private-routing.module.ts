@@ -13,9 +13,9 @@ const routes: Routes = [
     canActivate: [authGuard, roleGuard]
   },
   {
-    path: 'edit',
+    path: 'edit/:uuid',
     component: EditComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard]
   },
   {
     path: ':uuid',

@@ -36,6 +36,5 @@ export interface RecoverResponse {
  */
 export interface VerifyRequest {
   token: string;
-  new_password: string;
-  confirm_password: string;
+  password: string;
 }

@@ -21,16 +21,14 @@ export const roleGuard: CanActivateFn = (route, state) => {
     }
 
     // If user is not admin, they can only access the edit page
-    if (state.url.includes('/private/edit')) {
+    if (state.url === '/private/edit' || state.url.startsWith('/private/edit/')) {
       return true;
     }
 
     // For all other private routes, redirect to edit page
-    // Only if we're not already on the edit page to avoid loops
-    router.navigate(['/private/edit']);
+    router.navigate(['/private/edit', decoded.sub]);
     return false;
   } catch (error) {
-    console.error('Error decoding token:', error);
     localStorage.removeItem('access_token');
     router.navigate(['/login']);
     return false;

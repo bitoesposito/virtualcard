@@ -16,6 +16,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { finalize } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,9 +47,12 @@ import { finalize } from 'rxjs';
 export class DashboardComponent {
 
   users: any[] = [];
+  filteredUsers: any[] = [];
   paginator: any[] = [];
   currentUserEmail: string = ''
+  currentUserUuid: string = ''
   showNewUserDialog: boolean = false
+  searchTerm: string = '';
 
   loading = false;
 
@@ -60,10 +64,25 @@ export class DashboardComponent {
     private notificationService: NotificationService,
     private router: Router,
     private userService: UserService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private route: ActivatedRoute
   ) {
-    this.setCurrentUserEmail();
     this.getUsers();
+  }
+
+  onSearch(event: any) {
+    this.searchTerm = event.target.value.toLowerCase();
+    this.filterUsers();
+  }
+
+  private filterUsers() {
+    if (!this.searchTerm) {
+      this.filteredUsers = this.users;
+    } else {
+      this.filteredUsers = this.users.filter(user => 
+        user.email.toLowerCase().includes(this.searchTerm)
+      );
+    }
   }
 
   confirmCreationDialog(event: Event) {
@@ -154,6 +173,19 @@ export class DashboardComponent {
     if (token) {
       const decoded: any = jwtDecode(token);
       this.currentUserEmail = decoded.email;
+      // Trova l'UUID dell'utente corrente dalla lista degli utenti
+      const currentUser = this.users.find(user => user.email === decoded.email);
+      if (currentUser) {
+        this.currentUserUuid = currentUser.uuid;
+      }
+    }
+  }
+
+  onEditProfileClick() {
+    if (this.currentUserUuid) {
+      this.router.navigateByUrl(`/private/edit/${this.currentUserUuid}`);
+    } else {
+      this.notificationService.handleError(null, 'User profile not found');
     }
   }
 
@@ -162,6 +194,9 @@ export class DashboardComponent {
       next: (response) => {
         if (response.success) {
           this.users = response.data || [];
+          this.filteredUsers = this.users;
+          // Aggiorna l'UUID dell'utente corrente dopo aver ottenuto la lista
+          this.setCurrentUserEmail();
         } else {
           this.notificationService.showMessage('error', response.message || 'Error retrieving users');
         }
@@ -199,5 +234,25 @@ export class DashboardComponent {
 
   toggleNewUserDialog() {
     this.showNewUserDialog = !this.showNewUserDialog
+  }
+
+  onUserClick(user: any) {
+    this.userService.getUser(user.uuid).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          if (response.data.slug) {
+            this.router.navigate(['/u', response.data.slug]);
+          } else {
+            this.router.navigate(['/private/edit', user.uuid]);
+          }
+        } else {
+          this.router.navigate(['/private/edit', user.uuid]);
+        }
+      },
+      error: (error) => {
+        this.notificationService.handleError(error, 'Error retrieving user details');
+        this.router.navigate(['/private/edit', user.uuid]);
+      }
+    });
   }
 }

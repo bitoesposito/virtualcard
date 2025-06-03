@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend:/src/app
-      - /src/app/node_modules  # Evita conflitti con node_modules
+      - /src/app/node_modules
     command: npm run start:dev
     env_file:
       - .env
@@ -29,19 +29,19 @@ services:
         - action: rebuild
           path: ./backend
 
-  # frontend:
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./frontend
-  #   volumes:
-  #     - ./frontend:/frontend
-  #     - /frontend/node_modules  # Evita conflitti con node_modules
-  #   ports:
-  #     - 4200:4200
-  #   environment:
-  #     - NODE_ENV=development
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules  # Evita conflitti con node_modules
+    ports:
+      - 4200:4200
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
 
   postgres:
     image: postgres:latest

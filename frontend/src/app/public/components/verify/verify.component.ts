@@ -113,8 +113,7 @@ export class VerifyComponent implements OnInit {
     this.loading = true;
     const data: VerifyRequest = {
       token: this.token,
-      new_password: this.password.value,
-      confirm_password: this.confirmPassword.value
+      password: this.password.value
     };
 
     this.authService.verifyToken(data)

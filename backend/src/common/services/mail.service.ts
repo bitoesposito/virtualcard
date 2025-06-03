@@ -34,8 +34,8 @@ export class MailService {
                 ? 'Verify your email address'
                 : 'Reset your password';
 
-            const verificationUrl = `${this.frontendUrl}/verify-email?token=${token}`;
-            const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
+            const verificationUrl = `${this.frontendUrl}/verify?token=${token}`;
+            const resetUrl = `${this.frontendUrl}/verify?token=${token}`;
             const url = type === 'verification' ? verificationUrl : resetUrl;
 
             const html = `

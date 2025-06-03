@@ -71,7 +71,7 @@ export class LoginComponent implements OnInit {
           if (decoded.role === 'admin') {
             this.router.navigate(['/private/dashboard']);
           } else {
-            this.router.navigate(['/private/edit']);
+            this.router.navigate(['/private/edit', decoded.sub]);
           }
         } else {
           localStorage.removeItem('access_token');
@@ -131,7 +131,7 @@ export class LoginComponent implements OnInit {
             if (response.data.user.role === 'admin') {
               this.router.navigate(['/private/dashboard']);
             } else {
-              this.router.navigate(['/private/edit']);
+              this.router.navigate(['/private/edit', response.data.user.uuid]);
             }
           }
         },

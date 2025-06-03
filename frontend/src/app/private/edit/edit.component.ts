@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
@@ -74,10 +74,14 @@ export class EditComponent implements OnInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private notificationService: NotificationService
-  ) {}
+    private notificationService: NotificationService,
+    private route: ActivatedRoute
+  ) {
+    console.log('EditComponent constructor called');
+  }
 
   ngOnInit(): void {
+    console.log('EditComponent ngOnInit called');
     this.getUserData();
     this.setupSlugValidation();
   }
@@ -96,7 +100,12 @@ export class EditComponent implements OnInit {
   }
 
   private checkSlugAvailability(slug: string) {
-    if (slug === this.userData.slug) {
+    if (slug === this.userData?.slug) {
+      this.slugError = null;
+      return;
+    }
+
+    if (!slug || !this.form.get('slug')?.valid) {
       this.slugError = null;
       return;
     }
@@ -104,7 +113,7 @@ export class EditComponent implements OnInit {
     this.userService.checkSlugAvailability(slug).subscribe({
       next: (response: ApiResponse<{ available: boolean }>) => {
         if (!response.data?.available) {
-          this.slugError = 'This slug is already in use. Please choose another one.';
+          this.slugError = 'This profile URL is already taken. Please choose another one.';
           this.form.get('slug')?.setErrors({ 'slugTaken': true });
         } else {
           this.slugError = null;
@@ -148,7 +157,20 @@ export class EditComponent implements OnInit {
         }
       }
 
-      this.userService.updateProfile(formData).subscribe({
+      // Map form fields to backend fields
+      const profileData = {
+        name: formData.name,
+        surname: formData.surname,
+        area_code: formData.areaCode,
+        phone: formData.phone,
+        website: formData.website,
+        is_website_enabled: formData.isWebsiteEnabled,
+        is_whatsapp_enabled: formData.isWhatsappEnabled,
+        is_vcard_enabled: formData.isVcardEnabled,
+        slug: formData.slug
+      };
+
+      this.userService.updateProfile(profileData).subscribe({
         next: (response: any) => {
           this.notificationService.handleSuccess('Profile updated successfully');
           this.getUserData();
@@ -163,61 +185,73 @@ export class EditComponent implements OnInit {
   }
 
   getUserData() {
+    console.log('getUserData started');
     const token = localStorage.getItem('access_token');
+    console.log('Token from localStorage:', token);
     if (!token) {
+      console.log('No token found');
       this.notificationService.handleError(null, 'Session expired');
       this.disconnect();
       return;
     }
 
     try {
+      console.log('Attempting to decode token');
       const decoded: any = jwtDecode(token);
+      console.log('Decoded token:', decoded);
       if (!decoded.sub) {
         this.notificationService.handleError(null, 'Invalid token');
         return;
       }
 
-      this.userService.getUser(decoded.sub).subscribe({
-        next: (response: ApiResponse<UserDetails>) => {
-          if (response.success) {
-            // Initialize with empty values if no data exists
-            this.userData = response.data || {};
-            this.form.patchValue({
-              name: this.userData.name || '',
-              surname: this.userData.surname || '',
-              areaCode: this.userData.areaCode || '+39',
-              phone: this.userData.phone || '',
-              website: this.userData.website || '',
-              isWebsiteEnabled: this.userData.isWebsiteEnabled || false,
-              isWhatsappEnabled: this.userData.isWhatsappEnabled || false,
-              isVcardEnabled: this.userData.isVcardEnabled || false,
-              slug: this.userData.slug || ''
-            });
-            this.selectedAreaCode = this.userData.areaCode || '+39';
-          } else {
-            // Initialize with empty values if the request was successful but no data
-            this.userData = {};
-            this.form.patchValue({
-              name: '',
-              surname: '',
-              areaCode: '+39',
-              phone: '',
-              website: '',
-              isWebsiteEnabled: false,
-              isWhatsappEnabled: false,
-              isVcardEnabled: false,
-              slug: ''
-            });
-            this.selectedAreaCode = '+39';
+      // Get UUID from route params or use the one from token
+      this.route.params.subscribe(params => {
+        const uuid = params['uuid'] || decoded.sub;
+        console.log('Using UUID:', uuid);
+        
+        this.userService.getUser(uuid).subscribe({
+          next: (response: ApiResponse<UserDetails>) => {
+            console.log('API Response:', response);
+            if (response.success) {
+              // Initialize with empty values if no data exists
+              this.userData = response.data || {};
+              this.form.patchValue({
+                name: this.userData.name || '',
+                surname: this.userData.surname || '',
+                areaCode: this.userData.area_code || '+39',
+                phone: this.userData.phone || '',
+                website: this.userData.website || '',
+                isWebsiteEnabled: this.userData.is_website_enabled || false,
+                isWhatsappEnabled: this.userData.is_whatsapp_enabled || false,
+                isVcardEnabled: this.userData.is_vcard_enabled || false,
+                slug: this.userData.slug || ''
+              });
+              this.selectedAreaCode = this.userData.area_code || '+39';
+            } else {
+              // Initialize with empty values if the request was successful but no data
+              this.userData = {};
+              this.form.patchValue({
+                name: '',
+                surname: '',
+                areaCode: '+39',
+                phone: '',
+                website: '',
+                isWebsiteEnabled: false,
+                isWhatsappEnabled: false,
+                isVcardEnabled: false,
+                slug: ''
+              });
+              this.selectedAreaCode = '+39';
+            }
+          },
+          error: (error: any) => {
+            if (error.status === 401) {
+              this.disconnect();
+            } else {
+              this.notificationService.handleError(error, 'Error retrieving profile');
+            }
           }
-        },
-        error: (error: any) => {
-          if (error.status === 401) {
-            this.disconnect();
-          } else {
-            this.notificationService.handleError(error, 'Error retrieving profile');
-          }
-        }
+        });
       });
 
       if (decoded.role === 'admin') {

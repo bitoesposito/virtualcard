@@ -95,13 +95,4 @@ export class AuthController {
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<ApiResponseDto<null>> {
         return this.authService.resetPassword(resetPasswordDto);
     }
-
-    @Get('verify-token')
-    @UseGuards(JwtAuthGuard)
-    async verifyToken(@Req() req: Request) {
-        return {
-            user: req.user,
-            headers: req.headers,
-        };
-    }
 }

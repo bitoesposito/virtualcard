@@ -29,7 +29,9 @@ export class UserService {
   }
 
   getUser(uuid: string): Observable<ApiResponse<UserDetails>> {
-    return this.http.get<ApiResponse<UserDetails>>(`${this.API_URL}/users/by-id/${uuid}`)
+    return this.http.get<ApiResponse<UserDetails>>(`${this.API_URL}/users/by-id/${uuid}`, {
+      headers: this.getHeaders()
+    });
   }
 
   deleteUser(email: string): Observable<ApiResponse<null>> {

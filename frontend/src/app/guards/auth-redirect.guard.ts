@@ -18,7 +18,7 @@ export const authRedirectGuard: CanActivateFn = (route, state) => {
       if (payload.role === 'admin') {
         router.navigate(['/private/dashboard']);
       } else {
-        router.navigate(['/private/edit']);
+        router.navigate(['/private/edit', payload.sub]);
       }
       return false;
     }

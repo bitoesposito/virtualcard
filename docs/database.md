@@ -1,153 +1,213 @@
-# Struttura database
+# Database Structure
 
-## Entità
-### Users
+## Entities
 
-| entity | description |
+### User (auth_users table)
+| Field | Description |
 |-|-:|
 | uuid: string | Primary key, auto-generated |
-| email: string | Unique, lowercase |
-| password: string | Hashed |
-| role: string | enum di UserRole, default UserRole.USER |
+| email: string | Unique |
+| password: string | Hashed, nullable |
+| role: UserRole | enum, default UserRole.USER |
 | is_configured: boolean | default false |
-| name: string | nullable, 2-50 caratteri |
-| surname: string | nullable, 2-50 caratteri |
-| area_code: string | nullable, formato valido |
-| phone: string | nullable, formato valido |
-| website: string | nullable, formato valido |
-| is_whatsapp_enabled: boolean | default false |
-| is_website_enabled: boolean | default false |
-| is_vcard_enabled: boolean | default false |
-| slug: string | unique, nullable, 3-50 caratteri, formato [a-z0-9-] |
+| profile_uuid: string | Foreign key to user_profiles.uuid, nullable |
+| reset_token: string | nullable |
+| reset_token_expiry: Date | nullable |
 | created_at: Date | auto-generated |
 | updated_at: Date | auto-generated |
 
-## Interfacce DTO
+### UserProfile (user_profiles table)
+| Field | Description |
+|-|-:|
+| uuid: string | Primary key, auto-generated |
+| email: string | Unique |
+| name: string | nullable, 2-50 characters |
+| surname: string | nullable, 2-50 characters |
+| area_code: string | nullable, 2-10 characters |
+| phone: string | nullable, 5-20 characters |
+| website: string | nullable, valid URL format |
+| is_whatsapp_enabled: boolean | default false |
+| is_website_enabled: boolean | default false |
+| is_vcard_enabled: boolean | default false |
+| slug: string | unique, nullable, 3-50 characters, format [a-z0-9-] |
+| profile_photo: string | nullable |
+| created_at: Date | auto-generated |
+| updated_at: Date | auto-generated |
+
+## Relationships
+- One-to-One relationship between User and UserProfile
+- User.profile_uuid references UserProfile.uuid
+
+## DTO Interfaces
 
 ### UserResponseDto
-#### Descrizione
+#### Description
 
-Usato in: GET /user/:slug, GET /user/by-id/:uuid, GET /user/list per restituire dati pubblici di un utente. 
+Used in: GET /users/:slug, GET /users/by-id/:uuid, GET /users/list to return public user data.
 
+```typescript
 export class UserResponseDto {
   uuid: string;
   name?: string;
   surname?: string;
-  areaCode?: string;
+  area_code?: string;
   phone?: string;
   website?: string;
-  isWhatsappEnabled: boolean;
-  isWebsiteEnabled: boolean;
-  isVcardEnabled: boolean;
+  is_whatsapp_enabled: boolean;
+  is_website_enabled: boolean;
+  is_vcard_enabled: boolean;
   slug: string;
-  email?: string;  // Solo per admin in user/list
-  role?: string;   // Solo per admin in user/list
-  createdAt: Date;
+  profile_photo?: string;
+  email?: string;  // Only for admin in users/list
+  role?: string;   // Only for admin in users/list
+  created_at: Date;
+  updated_at: Date;
 }
+```
 
 ### CreateUserDto
-#### Descrizione
+#### Description
 
-Usato in: POST /user/create per creare nuovi utenti di ruolo USER.
+Used in: POST /users/create to create new users with USER role.
 
+```typescript
 export class CreateUserDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
   email: string;
 }
+```
 
 ### EditUserDto
-#### Descrizione
+#### Description
 
-Usato in: PUT /user/edit per la modifica del profilo utente, richiede l'autorizzazione JWT dell'utente che modifica il proprio profilo o di un admin.
+Used in: PUT /users/edit to modify user profile, requires JWT authorization of the user modifying their own profile or an admin.
 
+```typescript
 export class EditUserDto {
   @IsString()
-  @Length(2, 50)
-  name: string;
-
-  @IsString()
-  @Length(2, 50)
-  surname: string;
-
-  @IsString()
-  @Matches(VALIDATION_PATTERNS.AREA_CODE)
-  areaCode: string;
-
-  @IsString()
-  @Matches(VALIDATION_PATTERNS.PHONE)
-  phone: string;
-
   @IsOptional()
+  @Length(2, 50, { message: 'Name must be between 2 and 50 characters' })
+  name?: string;
+
   @IsString()
-  @Matches(VALIDATION_PATTERNS.WEBSITE)
+  @IsOptional()
+  @Length(2, 50, { message: 'Surname must be between 2 and 50 characters' })
+  surname?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(2, 10, { message: 'Area code must be between 2 and 10 characters' })
+  area_code?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(5, 20, { message: 'Phone number must be between 5 and 20 characters' })
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  @Matches(
+    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/,
+    { message: 'Invalid website URL format' }
+  )
   website?: string;
 
-  @IsOptional()
   @IsBoolean()
-  isWhatsappEnabled?: boolean;
+  @IsOptional()
+  is_whatsapp_enabled?: boolean;
 
-  @IsOptional()
   @IsBoolean()
-  isWebsiteEnabled?: boolean;
+  @IsOptional()
+  is_website_enabled?: boolean;
 
-  @IsOptional()
   @IsBoolean()
-  isVcardEnabled?: boolean;
+  @IsOptional()
+  is_vcard_enabled?: boolean;
 
   @IsString()
-  @Matches(VALIDATION_PATTERNS.SLUG)
-  @Length(3, 50)
-  slug: string;
+  @IsOptional()
+  @Matches(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    { message: 'Slug can only contain lowercase letters, numbers, and hyphens' }
+  )
+  slug?: string;
 }
+```
 
 ### LoginDto
-#### Descrizione
+#### Description
 
-Usato in: POST /auth/login per l'autenticazione, contiene le credenziali utente.
+Used in: POST /auth/login for authentication, contains user credentials.
 
+```typescript
 export class LoginDto {
-  @IsEmail()
-  @IsNotEmpty()
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  @MaxLength(255, { message: 'Email cannot exceed 255 characters' })
   email: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
-  @MaxLength(128)
+  @IsNotEmpty({ message: 'Password is required' })
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
+    {
+      message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character'
+    }
+  )
   password: string;
 }
+```
 
 ### ForgotPasswordDto
-#### Descrizione
+#### Description
 
-Usato in: POST /auth/recover per inviare una mail contenente un token temporaneo per il recupero password.
+Used in: POST /auth/recover to send an email containing a temporary token for password recovery.
 
+```typescript
 export class ForgotPasswordDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
   email: string;
 }
+```
 
-### UpdatePasswordDto
-#### Descrizione
+### ResetPasswordDto
+#### Description
 
-Usato in: POST /auth/verify per verificare un token di recupero e aggiornare la password.
+Used in: POST /auth/verify to verify a recovery token and update the password.
 
-export class UpdatePasswordDto {
+```typescript
+export class ResetPasswordDto {
   @IsString()
+  @IsNotEmpty({ message: 'Token is required' })
   token: string;
 
   @IsString()
-  @MinLength(6)
-  @MaxLength(128)
-  new_password: string;
+  @IsNotEmpty({ message: 'New password is required' })
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MaxLength(128, { message: 'Password cannot exceed 128 characters' })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/,
+    {
+      message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character'
+    }
+  )
+  password: string;
 }
+```
 
 ### DeleteUserDto
-#### Descrizione 
+#### Description
 
-Usato in: DELETE /user/delete per eliminare un utente, può essere eseguito solo dall'utente stesso o da un admin.
+Used in: DELETE /users/delete to delete a user, can only be executed by the user themselves or an admin.
 
+```typescript
 export class DeleteUserDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
   email: string;
 }
+```

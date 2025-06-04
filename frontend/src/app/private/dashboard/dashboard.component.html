@@ -38,8 +38,8 @@
     <content>
         @for (item of filteredUsers; track $index) {
         <div
-            class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center cursor-pointer">
-            <div class="flex flex-column cursor-pointer" (click)="onUserClick(item)">
+            class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center">
+            <div class="flex flex-column select-none">
                 <p class="font-semibold text-lg">{{item?.email}} <i *ngIf="item?.is_configured" class="pi pi-verified text-xs text-primary"></i></p>
                 <p class="text-sm text-color-secondary">Created on {{item?.created_at | date:'dd/MM/yyyy'}}</p>
             </div>

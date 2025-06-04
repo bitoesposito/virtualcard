@@ -235,24 +235,4 @@ export class DashboardComponent {
   toggleNewUserDialog() {
     this.showNewUserDialog = !this.showNewUserDialog
   }
-
-  onUserClick(user: any) {
-    this.userService.getUser(user.uuid).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          if (response.data.slug) {
-            this.router.navigate(['/u', response.data.slug]);
-          } else {
-            this.router.navigate(['/private/edit', user.uuid]);
-          }
-        } else {
-          this.router.navigate(['/private/edit', user.uuid]);
-        }
-      },
-      error: (error) => {
-        this.notificationService.handleError(error, 'Error retrieving user details');
-        this.router.navigate(['/private/edit', user.uuid]);
-      }
-    });
-  }
 }

@@ -111,7 +111,7 @@
 				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured()"/>
 				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}" (click)="shareProfile()"/>
 			</div>
-			<p-button label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" />
+			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" />
 		</div>
 	</form>
 </main>

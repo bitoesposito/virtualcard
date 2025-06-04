@@ -13,7 +13,7 @@
             {{userData.name}} {{userData.surname}}
         </p>
 
-        <a class="w-full" *ngIf="userData.isWhatsappEnabled" [href]="'https://wa.me/' + userData.phone">
+        <a class="w-full" *ngIf="userData.isWhatsappEnabled" [href]="'https://wa.me/' + userData.areaCode + userData.phone">
             <p-button label="Message me on WhatsApp" fluid="true"></p-button>
         </a>
 

@@ -18,14 +18,28 @@ export class MailService {
         const smtpConfig = {
             host: this.configService.get<string>('SMTP_HOST'),
             port: this.configService.get<number>('SMTP_PORT'),
-            secure: true,
+            secure: false,
             auth: {
                 user: this.configService.get<string>('SMTP_USER'),
                 pass: this.configService.get<string>('SMTP_PASS'),
             },
+            connectionTimeout: 10000, // 10 seconds
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
+            debug: false, // Enable debug logs
+            logger: false // Enable logger
         };
 
         this.transporter = nodemailer.createTransport(smtpConfig);
+
+        // Verify connection configuration
+        try {
+            await this.transporter.verify();
+            this.logger.log('SMTP connection verified successfully');
+        } catch (error) {
+            this.logger.error('SMTP connection verification failed:', error);
+            throw error;
+        }
     }
 
     async sendEmail(to: string, token: string, type: 'verification' | 'reset'): Promise<void> {
@@ -39,19 +53,16 @@ export class MailService {
             const url = type === 'verification' ? verificationUrl : resetUrl;
 
             const html = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">${subject}</h2>
-                    <p>Please click the button below to ${type === 'verification' ? 'verify your email address' : 'reset your password'}.</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${url}" 
-                            style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                            ${type === 'verification' ? 'Verify Email' : 'Reset Password'}
-                        </a>
-                    </div>
-                    <p style="color: #666; font-size: 14px;">
-                        If you didn't request this, you can safely ignore this email.
+                <body
+                    style="font-family: Arial, sans-serif;color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h1 style="color: #2c3e50;">${subject}</h1>
+                    <p>For ${type === 'verification' ? 'verify your account' : 'reset your password'}, click the button below:</p>
+                    <p style="margin: 20px 0;">
+                        <a href="${url}" style="background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">${type === 'verification' ? 'Verify account' : 'Reset password'}</a>
                     </p>
-                </div>
+                    <hr>
+                    <p style="color: #7f8c8d; font-size: 0.9em;">If you didn't request this, you can safely ignore this email.</p>
+                </body>
             `;
 
             await this.transporter.sendMail({

@@ -137,7 +137,7 @@ export class VerifyComponent implements OnInit {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: 'Confirm that you want to proceed with verification',
-      header: 'Verify password',
+      header: 'Complete verification',
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',

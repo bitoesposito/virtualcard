@@ -52,7 +52,7 @@ export class UsersService {
       const normalizedEmail = createUserDto.email.toLowerCase();
 
       // Check if user already exists
-      const existingUser = await this.userRepository.findOne({ 
+      const existingUser = await queryRunner.manager.findOne(User, { 
         where: { 
           email: normalizedEmail
         } 
@@ -60,6 +60,20 @@ export class UsersService {
 
       if (existingUser) {
         this.logger.warn('Create user attempt with existing email', { email: normalizedEmail });
+        await queryRunner.rollbackTransaction();
+        return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
+      }
+
+      // Check if profile already exists
+      const existingProfile = await queryRunner.manager.findOne(UserProfile, {
+        where: {
+          email: normalizedEmail
+        }
+      });
+
+      if (existingProfile) {
+        this.logger.warn('Create user attempt with existing profile email', { email: normalizedEmail });
+        await queryRunner.rollbackTransaction();
         return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
       }
 
@@ -130,8 +144,10 @@ export class UsersService {
       this.logger.error('Failed to create user:', error);
       
       // Handle specific database errors
-      if (error.code === '23505' && error.constraint === 'auth_users_email_key') {
-        return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
+      if (error.code === '23505') {
+        if (error.constraint === 'auth_users_email_key' || error.constraint === 'user_profiles_email_key') {
+          return ApiResponseDto.error('User with this email already exists', HttpStatus.CONFLICT);
+        }
       }
       
       // Handle other errors

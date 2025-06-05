@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailModule } from 'src/common/modues/mail.module';
+import { MailModule } from 'src/common/modules/mail.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UserProfile } from './entities/user-profile.entity';

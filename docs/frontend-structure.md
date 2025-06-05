@@ -1,72 +1,104 @@
-# Struttura Frontend Angular vCarder
+# Frontend Angular vCarder Structure
 
-## Panoramica
-Questa documentazione descrive la struttura delle cartelle, i componenti principali e la gestione dei permessi per il frontend Angular dell'applicazione vCarder.
+## Overview
+This documentation describes the folder structure, main components, and permission management for the Angular frontend application vCarder.
 
 ---
 
-## 1. Struttura delle cartelle
+## 1. Folder Structure
 
 ```
 src/
 └── app/
-    ├── core/
-    │   ├── services/
-    │   │   ├── auth.service.ts
-    │   │   ├── user.service.ts
-    │   │   └── modal.service.ts
-    │   ├── guards/
-    │   │   ├── auth.guard.ts
-    │   │   ├── admin.guard.ts
-    │   │   └── owner.guard.ts
-    │   └── models/
-    │       ├── user.model.ts
-    │       └── auth.model.ts
+    ├── services/
+    │   ├── auth.service.ts
+    │   └── user.service.ts
+    ├── guards/
+    │   ├── auth.guard.ts
+    │   └── role.guard.ts
+    ├── interceptors/
+    │   └── auth.interceptor.ts
+    ├── models/
+    │   ├── user.model.ts
+    │   └── auth.model.ts
     ├── private/
-    |   ├── components/
-    |   |   ├── dashboard/
-    |   |   ├── edit/
-    |   |   ├── new/
-    |   |   └── register/
-    |   └── private-routing.module.ts
+    │   ├── dashboard/
+    │   │   └── dashboard.component.ts
+    │   ├── edit/
+    │   │   └── edit.component.ts
+    │   ├── private-routing.module.ts
+    │   └── private.module.ts
     ├── public/
-    |   ├── components/
-    |   |   ├── login/
-    |   |   ├── recovery/
-    |   |   ├── verify/
-    │   │   └── user-detail/
-    |   └── public-routing.module.ts
-    ├── app-routing.module.ts
-    └── app.module.ts
+    │   ├── components/
+    │   │   ├── login/
+    │   │   │   └── login.component.ts
+    │   │   ├── recover/
+    │   │   │   └── recover.component.ts
+    │   │   ├── verify/
+    │   │   │   └── verify.component.ts
+    │   │   └── user-profile/
+    │   │       └── user-profile.component.ts
+    │   ├── public-routing.module.ts
+    │   ├── auth-routing.module.ts
+    │   └── public.module.ts
+    ├── app.routes.ts
+    └── app.config.ts
 ```
 
 ---
 
-## 2. Componenti principali e permessi
+## 2. Main Components and Permissions
 
-| Funzionalità                         | USER (normale) | ADMIN|
-|--------------------------------------|----------------|------|
-| Login                                | ✅             | ✅  |
-| Visualizza lista utenti              | ❌             | ✅  |
-| Visualizza profilo proprio           | ✅             | ✅  |
-| Visualizza profilo altri             | ✅ (pubblico)  | ✅  |
-| Modifica profilo proprio             | ✅             | ✅  |
-| Modifica altri profili               | ❌             | ✅  |
-| Elimina profili                      | ❌             | ✅  |
-| Crea nuovi utenti                    | ❌             | ✅  |
-| Recupero password                    | ✅             | ✅  |
+| Feature                    | USER (normal) | ADMIN |
+|---------------------------|---------------|-------|
+| Login                     | ✅            | ✅    |
+| View own profile          | ✅            | ✅    |
+| View other profiles       | ✅ (public)   | ✅    |
+| Edit own profile          | ✅            | ✅    |
+| Edit other profiles       | ❌            | ✅    |
+| Password recovery         | ✅            | ✅    |
 
 ---
 
-## 3. Routing suggerito
+## 3. Routing Structure
 
-- `/login` → LoginComponent (tutti)
-- `/forgot-password` → ForgotPasswordComponent (tutti)
-- `/reset-password` → ResetPasswordComponent (tutti)
-- `/users` → UserListComponent (solo admin, protetto da AdminGuard)
-- `/users/create` → UserCreateComponent (solo admin, protetto da AdminGuard)
-- `/users/:id` → UserDetailComponent (tutti, con logica: admin può vedere tutti, user solo il proprio o pubblico)
-- `/users/:id/edit` → UserEditComponent (admin può modificare tutti, user solo il proprio, protetto da OwnerGuard o AdminGuard)
-- `/card/:slug` → UserCardComponent (pubblico, nessuna protezione)
+### Public Routes
+- `/login` → LoginComponent (all users)
+- `/recover` → RecoverComponent (all users)
+- `/verify` → VerifyComponent (all users)
+- `/u/:slug` → UserProfileComponent (public access)
+
+### Private Routes (protected by authGuard and roleGuard)
+- `/private/dashboard` → DashboardComponent
+- `/private/edit/:uuid` → EditComponent
+- `/private/:uuid` → UserProfileComponent
+
+### Guards
+- `authGuard`: Ensures user is authenticated
+- `roleGuard`: Ensures user has required role for specific actions
+
+### Interceptors
+- `auth.interceptor`: Handles JWT token management and API requests
 
 ---
+
+## 4. Component Details
+
+### Public Components
+- **LoginComponent**: Handles user authentication
+- **RecoverComponent**: Handles password recovery requests
+- **VerifyComponent**: Handles password reset verification
+- **UserProfileComponent**: Displays public user profile
+
+### Private Components
+- **DashboardComponent**: Main dashboard for authenticated users
+- **EditComponent**: Profile editing interface
+- **UserProfileComponent**: Detailed user profile view (private version)
+
+### Services
+- **AuthService**: Handles authentication operations
+- **UserService**: Manages user-related operations
+
+### Models
+- **UserModel**: Defines user data structure
+- **AuthModel**: Defines authentication data structure

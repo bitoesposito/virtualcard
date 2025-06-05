@@ -1,125 +1,124 @@
-# Regole e Logica
+# Rules and Logic
 
-## Ruoli e Permessi
+## Roles and Permissions
 
-### Ruoli disponibili
+### Available Roles
 
-__ADMIN__: ruolo con accesso completo alle funzioni di gestione utenti.
+__ADMIN__: Role with full access to user management functions.
 
-__USER__: ruolo predefinito, con accesso limitato al proprio profilo.
+__USER__: Default role, with limited access to own profile.
 
-### Permessi per ruolo
+### Permissions by Role
 
-|Azione|USER|ADMIN|
-|-                              |--|--|
-|Login|                         O|O|
-|Visualizzare utenti (pubblico)|O|O|
-|Visualizzare utenti (lista)|   X|O|
-|Modificare il proprio profilo| O|O|
-|Modificare altri utenti|       X|O|
-|Eliminare il proprio profilo|  O|O|
-|Eliminare altri utenti|        X|O|
-|Creare nuovi utenti|           X|O|
-|Recupero password|             O|O|
-|Verifica token di recupero|    O|O|
+| Action                    | USER | ADMIN |
+|---------------------------|------|-------|
+| Login                     | ✅   | ✅    |
+| View profiles (public)    | ✅   | ✅    |
+| View users (list)         | ❌   | ✅    |
+| Edit own profile          | ✅   | ✅    |
+| Delete own profile        | ✅   | ✅    |
+| Delete other users        | ❌   | ✅    |
+| Create new users          | ❌   | ✅    |
+| Password recovery         | ✅   | ✅    |
+| Verify recovery token     | ✅   | ✅    |
 
-## Validazioni e Vincoli
+## Validations and Constraints
 
-### Campi obbligatori
+### Required Fields
 
-`email`: obbligatoria, valida e univoca.
+`email`: Required, valid and unique.
 
-`password`: obbligatoria per login e creazione, 6-128 caratteri.
+`password`: Required for login and creation, 8-128 characters.
 
-`slug`: obbligatorio in fase di modifica se isVcardEnabled è true.
+`slug`: Required during edit if isVcardEnabled is true.
 
 #### `Slug`
 
-Deve essere univoco nel database.
+Must be unique in the database.
 
-Formato consentito: `minuscolo, lettere, numeri, trattino ([a-z0-9-])`.
+Allowed format: `lowercase, letters, numbers, hyphen ([a-z0-9-])`.
 
-Lunghezza: 3-50 caratteri.
+Length: 3-50 characters.
 
-Non può essere modificato se già assegnato, salvo da admin.
+Cannot be modified if already assigned, except by admin.
 
-### Campi opzionali
+### Optional Fields
 
-`name`, `surname`: 2-50 caratteri.
+`name`, `surname`: 2-50 characters.
 
-`areaCode`, `phone`: formato valido.
+`area_code`, `phone`: Valid format.
 
-`website`: formato valido.
+`website`: Valid URL format.
 
-Se `isWhatsappEnabled = true`, il campo phone deve essere compilato.
+If `is_whatsapp_enabled = true`, phone field must be filled.
 
-Se `isWebsiteEnabled = true`, il campo website deve essere compilato.
+If `is_website_enabled = true`, website field must be filled.
 
-## Comportamenti automatici
+## Automatic Behaviors
 
-`uuid`: generato automaticamente come primary key.
+`uuid`: Automatically generated as primary key.
 
-`role`: assegnato come USER di default alla creazione.
+`role`: Assigned as USER by default at creation.
 
-`is_configured`: false di default, indica se l'utente ha completato la configurazione.
+`is_configured`: False by default, indicates if user has completed configuration.
 
-`created_at`, `updated_at`: gestiti automaticamente da ORM.
+`created_at`, `updated_at`: Automatically managed by ORM.
 
-`password`: hashata al momento del salvataggio.
+`password`: Hashed at save time.
 
-`email`: trattata come lowercase per confronti univoci.
+`email`: Treated as lowercase for unique comparisons.
 
-## Sicurezza e accesso
+## Security and Access
 
-### Autenticazione
+### Authentication
 
-Tutte le modifiche richiedono JWT valido.
+All modifications require valid JWT.
 
-Gli utenti possono modificare solo il proprio profilo.
+Users can only modify their own profile.
 
-Gli admin possono accedere e modificare qualsiasi utente.
+Admins can access and modify any user.
 
-#### Recupero password
+#### Password Recovery
 
-`ForgotPasswordDto`: genera token temporaneo (valido 10 minuti).
+`ForgotPasswordDto`: Generates temporary token (valid 10 minutes).
 
-`UpdatePasswordDto`: se token valido, aggiorna la password.
+`UpdatePasswordDto`: If token valid, updates password.
 
-## Errori comuni da gestire
+## Common Errors to Handle
 
 `400` Bad Request:
-- Campo mancante o non valido
-- Formato UUID non valido
-- Formato email non valido
-- Formato password non valido (min 6, max 128 caratteri)
-- Formato slug non valido
-- Formato area code non valido
-- Formato phone non valido
-- Formato website non valido
-- Lunghezza name/surname non valida (2-50 caratteri)
+- Missing or invalid field
+- Invalid UUID format
+- Invalid email format
+- Invalid password format (min 8, max 128 characters)
+- Invalid slug format
+- Invalid area code format
+- Invalid phone format
+- Invalid website format
+- Invalid name/surname length (2-50 characters)
 
 `401` Unauthorized:
-- JWT assente o invalido
-- Credenziali non valide al login
+- Missing or invalid JWT
+- Invalid credentials at login
 
 `403` Forbidden:
-- Azione non consentita (es. utente che modifica altro utente)
-- Tentativo di eliminare l'ultimo admin
+- Action not allowed (e.g., user modifying another user)
+- Attempt to delete last admin
 
 `404` Not Found:
-- Utente non esistente
-- Utente non trovato dopo aggiornamento
+- Non-existent user
+- User not found after update
 
 `409` Conflict:
-- Email duplicata
-- Slug duplicato
+- Duplicate email
+- Duplicate slug
 
 `429` Too Many Requests:
-- Troppi tentativi di recupero password
+- Too many password recovery attempts
 
 `500` Internal Server Error:
-- Errore interno del server
-- Errore durante la creazione utente
-- Errore durante l'aggiornamento utente
-- Errore durante l'eliminazione utente
-- Errore durante la ricerca utente
+- Internal server error
+- Error during user creation
+- Error during user update
+- Error during user deletion
+- Error during user search

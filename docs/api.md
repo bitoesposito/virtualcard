@@ -1,132 +1,138 @@
-# Lista delle api necessarie al progetto
+# API Documentation
 
-### Autenticazione
+### Authentication
 
-POST    auth/login              Gestisce l'autenticazione JWT e permette l'accesso alla piattaforma
-POST    auth/recover            Manda la richiesta per l'invio del token per la verifica finalizzata al recupero password
-POST    auth/verify             Verifica processi sensibili come il recupero della password o abilitazione MFA
+POST    auth/login              Handles user authentication and returns JWT token
+POST    auth/recover            Sends password reset link if email is registered
+POST    auth/verify             Verifies reset token and updates user's password
 
-### Gestione profili
+### User Management
 
-POST    user/create             Permette a creazione di un utente di ruolo user
-PUT     user/edit               Permette la modifica del profilo utente
-DEL     user/delete             Permette l'eliminazione del profilo utente
-GET     user/list               Permette il listaggio di tutti gli utenti presenti in piattaforma
-GET     user/:slug              Visualizza tutti i dati pubblici di un profilo ricercandolo tramite slug
-GET     user/by-id/:uuid        Visualizza tutti i dati pubblici di un profilo ricercandolo tramite uuid
-GET     user/check-slug/:slug   Verifica se uno slug è disponibile per l'uso
+POST    users/create            Creates a new user (Admin only)
+GET     users/list              Retrieves list of all non-admin users (Admin only)
+GET     users/by-id/:uuid       Retrieves user details by UUID (Admin or profile owner)
+PUT     users/edit              Updates user profile (Authenticated user)
+DELETE  users/delete            Deletes user and associated profile (Authenticated user)
+GET     users/:slug             Retrieves public user profile by slug (Public)
+GET     users/check-slug/:slug  Verifies slug availability (Authenticated user)
 
-# Struttura risposta endpoint
+# API Response Structure
+
+All API responses follow this structure:
+```json
+{
+  "success": boolean,
+  "message": string,
+  "data": any | null
+}
+```
+
+# Validation Rules
+
+## Password Requirements
+- Must be between 8 and 128 characters
+- Must include at least one uppercase letter
+- Must include at least one lowercase letter
+- Must include at least one number
+- Must include at least one special character
+
+## Email Requirements
+- Must be a valid email format
+- Cannot exceed 255 characters
+
+## Name and Surname Requirements
+- Must be between 2 and 50 characters
+- Must be a string
+
+## Area Code Requirements
+- Must be between 2 and 10 characters
+- Must be a string
+
+## Phone Number Requirements
+- Must be between 5 and 20 characters
+- Must be a string
+
+## Website URL Requirements
+- Must be a valid URL format
+- Optional
+
+## Slug Requirements
+- Can only contain lowercase letters, numbers, and hyphens
+- Optional
+
+# Endpoint Details
 
 ## auth/login
-### Descrizione
+### Description
+Handles user authentication and returns JWT token.
 
-Gestisce l'autenticazione JWT e permette l'accesso alla piattaforma.
-
-reqBody: {
-	"email": "string",
-	"password": "string"
+### Request Body
+```json
+{
+  "email": "string",  // Required, valid email format, max 255 chars
+  "password": "string"  // Required, 8-128 chars, must include uppercase, lowercase, number, and special char
 }
+```
 
-### Risposte
+### Responses
 
-200: {
+200: Success
+```json
+{
   "success": true,
   "message": "Login successful",
   "data": {
-    "access_token": string,
+    "access_token": "string",
     "user": {
-      "uuid": string,
-      "email": string,
-      "role": string
+      "uuid": "string",
+      "email": "string",
+      "role": "string"
     }
   }
 }
+```
 
-400: {
+400: Validation Error
+```json
+{
   "success": false,
   "message": "Validation error",
   "data": null
-  // Possibili messaggi:
+  // Possible messages:
   // - "Email is required"
   // - "Invalid email format"
   // - "Email cannot exceed 255 characters"
   // - "Password is required"
   // - "Password must be at least 8 characters"
   // - "Password cannot exceed 128 characters"
-  // - "Password must include an uppercase letter, a lowercase letter, a number, and a special character"
+  // - "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
 }
+```
 
-401: {
+401: Invalid Credentials
+```json
+{
   "success": false,
   "message": "Invalid credentials",
   "data": null
 }
-
-500: {
-  "success": false,
-  "message": "An error occurred during login",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "access_token": "JWT_TOKEN_HERE",
-    "user": {
-      "uuid": "123e4567-e89b-12d3-a456-426614174000",
-      "email": "user@example.com",
-      "role": "user"
-    }
-  }
-}
+```
 
 ## auth/recover
-### Descrizione
+### Description
+Sends a password reset link if the email is registered.
 
-Invia un'email con un link contenente un token temporaneo (valido 10 minuti) per il recupero password. Il link reindirizza a `/verify?token=<token>`. Per motivi di sicurezza, la risposta sarà sempre positiva anche se l'email non esiste nel sistema.
-
-reqBody: {
-  "email": string
+### Request Body
+```json
+{
+  "email": "string"  // Required, valid email format
 }
+```
 
-### Risposte
+### Responses
 
-200: {
-  "success": true,
-  "message": "If the email address is registered, you will receive a password reset link",
-  "data": {
-    "expiresIn": 600  // Durata token in secondi (10 minuti)
-  }
-}
-
-400: {
-  "success": false,
-  "message": "Validation error",
-  "data": null
-  // Possibili messaggi:
-  // - "Email is required"
-  // - "Invalid email format"
-  // - "Email cannot exceed 255 characters"
-}
-
-429: {
-  "success": false,
-  "message": "Too many password reset attempts. Please try again later.",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "An error occurred during password reset",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
+200: Success
+```json
 {
   "success": true,
   "message": "If the email address is registered, you will receive a password reset link",
@@ -134,523 +140,361 @@ reqBody: {
     "expiresIn": 600
   }
 }
+```
+
+400: Validation Error
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "data": null
+  // Possible messages:
+  // - "Email is required"
+  // - "Invalid email format"
+}
+```
 
 ## auth/verify
-### Descrizione
+### Description
+Verifies reset token and updates user's password.
 
-Verifica il token di recupero password e, se valido, permette l'aggiornamento della password. Deve essere chiamato dopo che l'utente ha inserito la nuova password nella pagina `/verify?token=<token>`.
-
-reqBody: {
-  "token": string,
-  "new_password": string;
-  "conirm_password": string;
+### Request Body
+```json
+{
+  "token": "string",  // Required
+  "password": "string"  // Required, 8-128 chars, must include uppercase, lowercase, number, and special char
 }
+```
 
-### Risposte
+### Responses
 
-200: {
+200: Success
+```json
+{
   "success": true,
   "message": "Password has been updated successfully",
   "data": null
 }
+```
 
-400: {
+400: Validation Error
+```json
+{
   "success": false,
   "message": "Validation error",
   "data": null
-  // Possibili messaggi:
+  // Possible messages:
   // - "Token is required"
-  // - "Invalid token"
   // - "New password is required"
-  // - "Password confirmation is required"
   // - "Password must be at least 8 characters"
   // - "Password cannot exceed 128 characters"
-  // - "Password must include an uppercase letter, a lowercase letter, a number, and a special character"
+  // - "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
 }
+```
 
-401: {
+401: Invalid Token
+```json
+{
   "success": false,
   "message": "Invalid or expired token",
   "data": null
 }
+```
 
-404: {
+## users/create
+### Description
+Creates a new user (Admin only).
+
+### Request Body
+```json
+{
+  "email": "string"  // Required, valid email format
+}
+```
+
+### Responses
+
+201: Success
+```json
+{
+  "success": true,
+  "message": "User created",
+  "data": {
+    "email": "string"
+  }
+}
+```
+
+400: Validation Error
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "data": null
+  // Possible messages:
+  // - "Email is required"
+  // - "Invalid email format"
+}
+```
+
+403: Forbidden
+```json
+{
+  "success": false,
+  "message": "Admin privileges required",
+  "data": null
+}
+```
+
+## users/list
+### Description
+Retrieves list of all non-admin users (Admin only).
+
+### Responses
+
+200: Success
+```json
+{
+  "success": true,
+  "message": "Users list retrieved successfully",
+  "data": [
+    {
+      "uuid": "string",
+      "email": "string",
+      "is_configured": boolean,
+      "created_at": "string"
+    }
+  ]
+}
+```
+
+403: Forbidden
+```json
+{
+  "success": false,
+  "message": "Admin privileges required",
+  "data": null
+}
+```
+
+## users/by-id/:uuid
+### Description
+Retrieves user details by UUID (Admin or profile owner).
+
+### Responses
+
+200: Success
+```json
+{
+  "success": true,
+  "message": "User details retrieved successfully",
+  "data": {
+    "uuid": "string",
+    "email": "string",
+    "name": "string",
+    "surname": "string",
+    "area_code": "string",
+    "phone": "string",
+    "website": "string",
+    "is_whatsapp_enabled": boolean,
+    "is_website_enabled": boolean,
+    "is_vcard_enabled": boolean,
+    "slug": "string",
+    "profile_photo": "string",
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+```
+
+403: Forbidden
+```json
+{
+  "success": false,
+  "message": "You can only access your own profile",
+  "data": null
+}
+```
+
+404: Not Found
+```json
+{
   "success": false,
   "message": "User not found",
   "data": null
 }
+```
 
-500: {
-  "success": false,
-  "message": "An error occurred while updating password",
-  "data": null
+## users/edit
+### Description
+Updates user profile (Authenticated user).
+
+### Request Body
+```json
+{
+  "name": "string",  // Optional, 2-50 chars
+  "surname": "string",  // Optional, 2-50 chars
+  "area_code": "string",  // Optional, 2-10 chars
+  "phone": "string",  // Optional, 5-20 chars
+  "website": "string",  // Optional, valid URL format
+  "is_whatsapp_enabled": boolean,  // Optional
+  "is_website_enabled": boolean,  // Optional
+  "is_vcard_enabled": boolean,  // Optional
+  "slug": "string"  // Optional, lowercase letters, numbers, and hyphens only
 }
+```
 
-### Esempio di risposta eseguita con successo
+### Responses
 
+200: Success
+```json
 {
   "success": true,
-  "message": "Password has been updated successfully",
-  "data": null
-}
-
-## user/create
-### Descrizione
-
-Genera un nuovo utente con ruolo user e tutte le informazioni disponibili settate come `null`. Invia tramite email un link contenente un token temporaneo (valido 10 minuti) per permettere all'utente di impostare una propria password. Il link reindirizza a `/verify?token=<token>`.
-
-reqBody: {
-  "email": string
-}
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "User created",
+  "message": "Profile updated successfully",
   "data": {
-    "email": string
+    "uuid": "string",
+    "email": "string",
+    "name": "string",
+    "surname": "string",
+    "area_code": "string",
+    "phone": "string",
+    "website": "string",
+    "is_whatsapp_enabled": boolean,
+    "is_website_enabled": boolean,
+    "is_vcard_enabled": boolean,
+    "slug": "string",
+    "profile_photo": "string",
+    "created_at": "string",
+    "updated_at": "string"
   }
 }
+```
 
-400: {
+400: Validation Error
+```json
+{
   "success": false,
   "message": "Validation error",
   "data": null
-  // Possibili messaggi:
-  // - "Email is required"
-  // - "Invalid email format"
-  // - "Email cannot exceed 255 characters"
-}
-
-409: {
-  "success": false,
-  "message": "User with this email already exists",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to create user",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "User created",
-  "data": {
-    "email": "info@mariorossi.com"
-  }
-}
-
-## user/edit
-### Descrizione
-
-Permette la modifica del profilo utente previa autenticazione via JWT. Tutti i campi sono opzionali e verranno aggiornati solo quelli forniti nella richiesta.
-
-Authorization: Bearer `<token>`
-
-reqBody: {
-  "name"?: string,
-  "surname"?: string,
-  "areaCode"?: string,
-  "phone"?: string,
-  "website"?: string,
-  "isWhatsappEnabled"?: boolean,
-  "isWebsiteEnabled"?: boolean,
-  "isVcardEnabled"?: boolean,
-  "slug"?: string
-}
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "User updated successfully",
-  "data": {
-    "uuid": string,
-    "name": string,
-    "surname": string,
-    "areaCode": string,
-    "phone": string,
-    "website": string,
-    "isWhatsappEnabled": boolean,
-    "isWebsiteEnabled": boolean,
-    "isVcardEnabled": boolean,
-    "slug": string,
-    "email": string,
-    "role": string
-  }
-}
-
-400: {
-  "success": false,
-  "message": "Validation error",
-  "data": null
-  // Possibili messaggi:
+  // Possible messages:
   // - "Name must be between 2 and 50 characters"
   // - "Surname must be between 2 and 50 characters"
-  // - "Area code must start with + followed by 1-4 digits"
-  // - "Phone number must be 10 digits"
+  // - "Area code must be between 2 and 10 characters"
+  // - "Phone number must be between 5 and 20 characters"
   // - "Invalid website URL format"
-  // - "Slug must be between 3 and 50 characters"
   // - "Slug can only contain lowercase letters, numbers, and hyphens"
 }
+```
 
-401: {
-  "success": false,
-  "message": "Invalid or expired token",
-  "data": null
-}
-
-403: {
+403: Forbidden
+```json
+{
   "success": false,
   "message": "You can only edit your own profile",
   "data": null
 }
+```
 
-404: {
+## users/delete
+### Description
+Deletes user and associated profile (Authenticated user).
+
+### Request Body
+```json
+{
+  "email": "string"  // Required, valid email format
+}
+```
+
+### Responses
+
+200: Success
+```json
+{
+  "success": true,
+  "message": "User deleted successfully",
+  "data": null
+}
+```
+
+400: Validation Error
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "data": null
+  // Possible messages:
+  // - "Email is required"
+  // - "Invalid email format"
+}
+```
+
+403: Forbidden
+```json
+{
+  "success": false,
+  "message": "You can only delete your own account",
+  "data": null
+}
+```
+
+## users/:slug
+### Description
+Retrieves public user profile by slug (Public).
+
+### Responses
+
+200: Success
+```json
+{
+  "success": true,
+  "message": "User found",
+  "data": {
+    "uuid": "string",
+    "name": "string",
+    "surname": "string",
+    "area_code": "string",
+    "phone": "string",
+    "website": "string",
+    "is_whatsapp_enabled": boolean,
+    "is_website_enabled": boolean,
+    "is_vcard_enabled": boolean,
+    "slug": "string"
+  }
+}
+```
+
+404: Not Found
+```json
+{
   "success": false,
   "message": "User not found",
   "data": null
 }
+```
 
-409: {
-  "success": false,
-  "message": "Slug already exists",
-  "data": null
-}
+## users/check-slug/:slug
+### Description
+Verifies slug availability (Authenticated user).
 
-500: {
-  "success": false,
-  "message": "Failed to edit user",
-  "data": null
-}
+### Responses
 
-### Esempio di risposta eseguita con successo
-
+200: Success
+```json
 {
-  "success": true,
-  "message": "User updated successfully",
-  "data": {
-    "uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "name": "Mario",
-    "surname": "Rossi",
-    "areaCode": "+39",
-    "phone": "3331234567",
-    "website": "https://mariorossi.com",
-    "isWhatsappEnabled": true,
-    "isWebsiteEnabled": true,
-    "isVcardEnabled": true,
-    "slug": "mario-rossi",
-    "email": "info@mariorossi.com",
-    "role": "user"
-  }
-}
-
-## user/check-slug/:slug
-### Descrizione
-
-Verifica se uno slug è disponibile per l'uso. Questo endpoint è utile per verificare se un URL del profilo è già in uso prima di tentare di salvarlo.
-
-### Risposte
-
-200: {
   "success": true,
   "message": "Slug availability checked successfully",
   "data": {
     "available": boolean
   }
 }
+```
 
-400: {
+400: Validation Error
+```json
+{
   "success": false,
   "message": "Invalid slug format",
   "data": null
 }
-
-400: {
-  "success": false,
-  "message": "Invalid slug value",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to check slug availability",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "Slug availability checked successfully",
-  "data": {
-    "available": true
-  }
-}
-
-## user/delete
-### Descrizione
-
-Elimina definitivamente il profilo utente e tutti i dati associati previa autenticazione via JWT di un admin o dell'utente proprietario del profilo.
-
-Authorization: Bearer `<token>` di un admin o dell'utente proprietario del profilo.
-
-reqBody: {
-  "email": string
-}
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "User deleted successfully",
-  "data": null
-}
-
-400: {
-  "success": false,
-  "message": "Validation error",
-  "data": null
-  // Possibili messaggi:
-  // - "Email is required"
-  // - "Invalid email format"
-  // - "Email cannot exceed 255 characters"
-}
-
-401: {
-  "success": false,
-  "message": "Invalid or expired token",
-  "data": null
-}
-
-403: {
-  "success": false,
-  "message": "You can only delete your own account",
-  "data": null
-  // Oppure:
-  // - "Cannot delete the last admin user"
-}
-
-404: {
-  "success": false,
-  "message": "User not found",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to delete user",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "User deleted successfully",
-  "data": null
-}
-
-## user/list
-### Descrizione
-
-Restituisce un array con tutti gli utenti registrati nella piattaforma. Richiede l'autenticazione via JWT di un admin.
-
-Authorization: Bearer `<token>`
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "Users retrieved successfully",
-  "data": [
-    {
-      "uuid": string,
-      "name": string,
-      "surname": string,
-      "areaCode": string,
-      "phone": string,
-      "website": string,
-      "isWhatsappEnabled": boolean,
-      "isWebsiteEnabled": boolean,
-      "isVcardEnabled": boolean,
-      "slug": string,
-      "email": string,
-      "role": string,
-      "createdAt": string  // ISO 8601 timestamp
-    }
-  ]
-}
-
-401: {
-  "success": false,
-  "message": "Invalid or expired token",
-  "data": null
-}
-
-403: {
-  "success": false,
-  "message": "Admin privileges required",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to fetch users",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "Users retrieved successfully",
-  "data": [
-    {
-      "uuid": "123e4567-e89b-12d3-a456-426614174000",
-      "name": "Mario",
-      "surname": "Rossi",
-      "areaCode": "+39",
-      "phone": "3331234567",
-      "website": "https://mariorossi.com",
-      "isWhatsappEnabled": true,
-      "isWebsiteEnabled": true,
-      "isVcardEnabled": true,
-      "slug": "mario-rossi",
-      "email": "info@mariorossi.com",
-      "role": "user",
-      "createdAt": "2024-03-20T12:00:00.000Z"
-    }
-  ]
-}
-
-## user/:slug
-### Descrizione
-
-Restituisce tutti i dati pubblici associati a un profilo utente ricercandolo tramite slug. Accessibile senza autenticazione.
-
-GET /user/{slug}
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "User found",
-  "data": {
-    "uuid": string,
-    "name": string,
-    "surname": string,
-    "areaCode": string,
-    "phone": string,
-    "website": string,
-    "isWhatsappEnabled": boolean,
-    "isWebsiteEnabled": boolean,
-    "isVcardEnabled": boolean,
-    "slug": string
-  }
-}
-
-400: {
-  "success": false,
-  "message": "Slug is required",
-  "data": null
-}
-
-404: {
-  "success": false,
-  "message": "User not found",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to find user",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "User found",
-  "data": {
-    "uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "name": "Mario",
-    "surname": "Rossi",
-    "areaCode": "+39",
-    "phone": "3331234567",
-    "website": "https://mariorossi.com",
-    "isWhatsappEnabled": true,
-    "isWebsiteEnabled": true,
-    "isVcardEnabled": true,
-    "slug": "mario-rossi"
-  }
-}
-
-## user/by-id/:uuid
-### Descrizione
-
-Restituisce tutti i dati pubblici associati a un profilo utente ricercandolo tramite UUID. Accessibile senza autenticazione.
-
-GET /user/by-id/{uuid}
-
-### Risposte
-
-200: {
-  "success": true,
-  "message": "User profile retrieved successfully",
-  "data": {
-    "uuid": string,
-    "name": string,
-    "surname": string,
-    "areaCode": string,
-    "phone": string,
-    "website": string,
-    "isWhatsappEnabled": boolean,
-    "isWebsiteEnabled": boolean,
-    "isVcardEnabled": boolean,
-    "slug": string
-  }
-}
-
-400: {
-  "success": false,
-  "message": "Invalid UUID format",
-  "data": null
-}
-
-404: {
-  "success": false,
-  "message": "User not found",
-  "data": null
-}
-
-500: {
-  "success": false,
-  "message": "Failed to find user",
-  "data": null
-}
-
-### Esempio di risposta eseguita con successo
-
-{
-  "success": true,
-  "message": "User profile retrieved successfully",
-  "data": {
-    "uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "name": "Mario",
-    "surname": "Rossi",
-    "areaCode": "+39",
-    "phone": "3331234567",
-    "website": "https://mariorossi.com",
-    "isWhatsappEnabled": true,
-    "isWebsiteEnabled": true,
-    "isVcardEnabled": true,
-    "slug": "mario-rossi"
-  }
-}
+```

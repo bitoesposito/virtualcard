@@ -57,7 +57,7 @@ export class DatabaseService {
           role VARCHAR(10) CHECK (role IN ('admin', 'user')) NOT NULL DEFAULT 'user',
           is_configured BOOLEAN NOT NULL DEFAULT FALSE,
           profile_uuid UUID REFERENCES user_profiles(uuid) ON DELETE SET NULL,
-          reset_token VARCHAR(255),
+          reset_token VARCHAR(511),
           reset_token_expiry TIMESTAMP,
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

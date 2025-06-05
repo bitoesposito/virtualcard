@@ -28,9 +28,9 @@ export class AuthService {
   
   private readonly securityConfig: SecurityConfig = {
     maxLoginAttempts: 5,
-    lockoutDuration: 15 * 60 * 1000, // 15 minutes
-    rateLimitWindow: 3600000, // 1 hour
-    maxRequestsPerWindow: 3
+    lockoutDuration: 1 * 60 * 1000, // 1 minute
+    rateLimitWindow: 1 * 60 * 1000, // 3 minutes
+    maxRequestsPerWindow: 5 // 5 requests per window
   };
 
   private readonly logger = new Logger(AuthService.name);

@@ -40,7 +40,7 @@ export class UserProfile {
   @Column({ nullable: true, unique: true })
   slug: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 1024 })
   profile_photo: string;
 
   @CreateDateColumn()

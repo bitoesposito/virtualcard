@@ -9,6 +9,8 @@ import { UserRole } from '../auth/auth.interface';
 import { MailService } from 'src/common/services/mail.service';
 import { UserProfile } from './entities/user-profile.entity';
 import { EditUserDto } from './users.dto';
+import { MinioService } from '../common/services/minio.service';
+import { ImageOptimizerService } from '../common/services/image-optimizer.service';
 
 /**
  * Service handling user-related operations
@@ -26,6 +28,8 @@ export class UsersService {
     private jwtService: JwtService,
     private mailService: MailService,
     private dataSource: DataSource,
+    private minioService: MinioService,
+    private imageOptimizerService: ImageOptimizerService,
   ) {}
 
   /**
@@ -260,7 +264,23 @@ export class UsersService {
 
       const profile = await this.userProfileRepository.findOne({
         where: { slug },
-        relations: ['user']
+        relations: ['user'],
+        select: {
+          uuid: true,
+          email: true,
+          name: true,
+          surname: true,
+          area_code: true,
+          phone: true,
+          website: true,
+          is_whatsapp_enabled: true,
+          is_website_enabled: true,
+          is_vcard_enabled: true,
+          slug: true,
+          profile_photo: true,
+          created_at: true,
+          updated_at: true
+        }
       });
 
       if (!profile) {
@@ -613,6 +633,85 @@ export class UsersService {
         'An error occurred while checking slug availability', 
         HttpStatus.INTERNAL_SERVER_ERROR
       );
+    }
+  }
+
+  /**
+   * Uploads a profile photo for a user
+   * 
+   * @param file - The image file to upload
+   * @param email - Email of the user
+   * @returns Promise<ApiResponseDto<UserProfile>> - Response containing updated profile
+   */
+  async uploadProfilePhoto(file: Express.Multer.File, email: string): Promise<ApiResponseDto<UserProfile>> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      // Find user and verify it exists
+      const user = await this.userRepository.findOne({ 
+        where: { email }
+      });
+
+      if (!user) {
+        this.logger.warn('User not found during photo upload', { email });
+        return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Find profile
+      const profile = await this.userProfileRepository.findOne({
+        where: { uuid: user.profile_uuid }
+      });
+
+      if (!profile) {
+        this.logger.error('Profile not found for user', { 
+          userId: user.uuid,
+          email: user.email
+        });
+        return ApiResponseDto.error('Profile not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Determine best format for the image
+      const bestFormat = await this.imageOptimizerService.determineBestFormat(file.buffer);
+
+      // Optimize the image
+      const optimizedBuffer = await this.imageOptimizerService.optimizeImage(file.buffer, {
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 80,
+        format: bestFormat
+      });
+
+      // Create a new file object with the optimized buffer
+      const optimizedFile = {
+        ...file,
+        buffer: optimizedBuffer,
+        originalname: `profile.${bestFormat}`
+      };
+
+      // Generate a unique key for the file
+      const key = `${user.uuid}/${Date.now()}.${bestFormat}`;
+
+      // Upload file to MinIO
+      const fileUrl = await this.minioService.uploadFile(optimizedFile, key);
+
+      // Update profile with new photo URL
+      profile.profile_photo = fileUrl;
+      const updatedProfile = await queryRunner.manager.save(profile);
+
+      await queryRunner.commitTransaction();
+      return ApiResponseDto.success(updatedProfile, 'Profile photo uploaded successfully');
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Failed to upload profile photo:', {
+        error: error.message,
+        email
+      });
+      return ApiResponseDto.error('Failed to upload profile photo', HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      await queryRunner.release();
     }
   }
 } 

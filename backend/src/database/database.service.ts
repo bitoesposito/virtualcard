@@ -42,7 +42,7 @@ export class DatabaseService {
           is_website_enabled BOOLEAN NOT NULL DEFAULT FALSE,
           is_vcard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
           slug VARCHAR(255) UNIQUE,
-          profile_photo VARCHAR(255),
+          profile_photo VARCHAR(1024),
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )

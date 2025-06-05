@@ -58,8 +58,3 @@ node_modules
 
 # others from Angular
 */.angular
-
-/demo-be
-/demo-fe
-*.sql
-/frontend_old

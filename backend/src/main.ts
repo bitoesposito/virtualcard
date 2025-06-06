@@ -14,6 +14,9 @@ async function bootstrap() {
     maxAge: 3600
   });
   
+  // Set global prefix in case of SSL configuration with nginx
+  app.setGlobalPrefix('api');
+  
   // Initialize database
   const databaseService = app.get(DatabaseService);
   await databaseService.initializeDatabase();

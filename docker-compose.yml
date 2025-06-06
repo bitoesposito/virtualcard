@@ -1,4 +1,25 @@
 services:
+
+#comment this service out if you're not using SSL
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    environment:
+      - URL=${URL}
+      - FE_PORT=${FE_PORT}
+      - BE_PORT=${BE_PORT}
+      - MINIO_PORT=${MINIO_PORT}
+    depends_on:
+      - frontend
+      - backend
+      - minio
+
   backend:
     build:
       context: ./backend
@@ -26,7 +47,7 @@ services:
       - MINIO_USE_SSL=${MINIO_USE_SSL}
       - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
     ports:
-      - 3000:3000
+      - "3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,7 +64,7 @@ services:
       - ./frontend:/frontend
       - /frontend/node_modules  # Evita conflitti con node_modules
     ports:
-      - 4200:4200
+      - "4200"
     environment:
       - NODE_ENV=development
     depends_on:
@@ -70,7 +91,7 @@ services:
   minio:
     image: minio/minio
     ports:
-      - "9000:9000"
+      - "9000"
       - "9001:9001"
     volumes:
       - minio_data:/data

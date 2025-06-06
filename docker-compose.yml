@@ -19,6 +19,16 @@ services:
       - frontend
       - backend
       - minio
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        mode: "non-blocking"
+        tag: "{{.Name}}"
+        labels: "nginx"
+        env: "prod"
+        max-buffer-size: "25m"
 
   backend:
     build:

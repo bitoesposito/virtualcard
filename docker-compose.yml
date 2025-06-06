@@ -72,7 +72,7 @@ services:
       context: ./frontend
     volumes:
       - ./frontend:/frontend
-      - /frontend/node_modules  # Evita conflitti con node_modules
+      - /frontend/node_modules
     ports:
       - "4200"
     environment:

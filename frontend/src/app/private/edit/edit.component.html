@@ -10,6 +10,20 @@
 			<p class="text-sm text-color-secondary">To make your profile public, complete the setup by entering your details and a custom link for your profile.</p>
 		</div>
 
+		<div class="flex gap-1 flex-column mb-2">
+			<label for="profilePicture">Profile Picture</label>
+			<img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
+                [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md max-w-20rem mb-2 cursor-pointer"
+                style="height: min-content;" (click)="fu.choose()"/>
+            <div *ngIf="!userData.profilePhoto"
+                class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem mb-2 py-3 cursor-pointer"
+                (click)="fu.choose()">
+                <i class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
+				<p class="text-color-secondary">Upload a profile picture</p>
+            </div>
+			<p-fileupload #fu mode="basic" chooseLabel="Choose" chooseIcon="pi pi-upload" name="demo[]" url="https://www.primefaces.org/cdn/api/upload.php" accept="image/*" maxFileSize="1000000" (onUpload)="onProfilePictureUpload($event)" styleClass="justify-content-start" [style]="{'display': 'none'}"/>
+		</div>
+
 		<div class="flex gap-1 flex-column">
 			<label for="name">Name</label>
 			<input formControlName="name" type="text" pInputText placeholder="Enter your name" />

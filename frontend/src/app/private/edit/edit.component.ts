@@ -18,6 +18,7 @@ import { jwtDecode } from 'jwt-decode';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { DividerModule } from 'primeng/divider';
+import { FileUploadModule } from 'primeng/fileupload';
 
 @Component({
   selector: 'app-edit',
@@ -33,7 +34,9 @@ import { DividerModule } from 'primeng/divider';
     SelectModule,
     ImageModule,
     CommonModule,
-    DividerModule
+    DividerModule,
+    FileUploadModule,
+    ImageModule
   ],
   providers: [
     NotificationService,
@@ -281,5 +284,27 @@ export class EditComponent implements OnInit {
               this.userData.surname && 
               this.userData.phone && 
               this.userData.slug);
+  }
+
+  onProfilePictureUpload(event: any) {
+    const file: File = event.files?.[0];
+    if (!file || !this.userData?.email) {
+      this.notificationService.handleWarning('File o email non disponibili');
+      return;
+    }
+    this.userService.uploadProfilePicture(file, this.userData.email).subscribe({
+      next: (response) => {
+        if (response.success && response.data?.url) {
+          this.notificationService.handleSuccess('Foto profilo aggiornata!');
+          this.userData.profilePhoto = response.data.url;
+          this.getUserData(); // aggiorna i dati utente
+        } else {
+          this.notificationService.handleError(null, 'Errore durante l\'upload');
+        }
+      },
+      error: (error) => {
+        this.notificationService.handleError(error, 'Errore durante l\'upload');
+      }
+    });
   }
 }

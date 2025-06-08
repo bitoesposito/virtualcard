@@ -15,7 +15,11 @@ import {
   Delete,
   Request,
   BadRequestException,
-  ForbiddenException
+  ForbiddenException,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, EditUserDto, DeleteUserDto } from './users.dto';
@@ -25,6 +29,7 @@ import { Roles } from '../auth/auth.interface';
 import { UserRole } from '../auth/auth.interface';
 import { ApiResponseDto } from '../common/common.interface';
 import { Logger } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 /**
  * Controller handling user-related HTTP requests
@@ -306,7 +311,8 @@ export class UsersController {
       isWhatsappEnabled: profile.is_whatsapp_enabled,
       isWebsiteEnabled: profile.is_website_enabled,
       isVcardEnabled: profile.is_vcard_enabled,
-      slug: profile.slug
+      slug: profile.slug,
+      profilePhoto: profile.profile_photo
     };
 
     this.logger.log('User profile retrieved successfully', { 
@@ -358,6 +364,53 @@ export class UsersController {
       this.logger.log('Slug availability checked successfully', { 
         slug: trimmedSlug,
         available: response.data.available,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    return response;
+  }
+
+  /**
+   * Uploads a profile photo for the authenticated user
+   * Requires authentication
+   * 
+   * @param file - The image file to upload
+   * @param req - Request object containing authenticated user
+   * @returns Promise<ApiResponseDto<UserProfile>> - Response containing updated profile
+   */
+  @Post('upload-photo')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('photo'))
+  @HttpCode(HttpStatus.OK)
+  async uploadProfilePhoto(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Request() req,
+  ) {
+    this.logger.log('Uploading profile photo', { 
+      email: req.user.email,
+      timestamp: new Date().toISOString()
+    });
+
+    const response = await this.usersService.uploadProfilePhoto(file, req.user.email);
+    
+    if (!response.success) {
+      this.logger.error('Failed to upload profile photo', { 
+        email: req.user.email, 
+        error: response.message,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      this.logger.log('Profile photo uploaded successfully', { 
+        email: req.user.email,
         timestamp: new Date().toISOString()
       });
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -18,7 +18,7 @@ import { jwtDecode } from 'jwt-decode';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { DividerModule } from 'primeng/divider';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 
 @Component({
   selector: 'app-edit',
@@ -46,6 +46,9 @@ import { FileUploadModule } from 'primeng/fileupload';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnInit {
+  @ViewChild('fu') fileUpload!: FileUpload;
+  @ViewChild('fileInput') fileInput!: ElementRef;
+  
   userData: any = {};
   area_code = (languages as any).default.map((lang: Language) => ({
     label: lang.iso.toUpperCase(),
@@ -286,24 +289,43 @@ export class EditComponent implements OnInit {
               this.userData.slug);
   }
 
+  triggerFileInput() {
+    this.fileInput.nativeElement.click();
+  }
+
   onProfilePictureUpload(event: any) {
-    const file: File = event.files?.[0];
+    const file = event.target.files[0];
     if (!file || !this.userData?.email) {
-      this.notificationService.handleWarning('File o email non disponibili');
+      this.notificationService.handleWarning('File or email not available');
       return;
     }
+
+    // Check file type - only allow jpg, jpeg, and png
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      this.notificationService.handleWarning('Please select a JPG or PNG image file');
+      return;
+    }
+
+    // Check file size (1MB max)
+    if (file.size > 1000000) {
+      this.notificationService.handleWarning('Image size cannot exceed 1MB');
+      return;
+    }
+
     this.userService.uploadProfilePicture(file, this.userData.email).subscribe({
-      next: (response) => {
-        if (response.success && response.data?.url) {
-          this.notificationService.handleSuccess('Foto profilo aggiornata!');
+      next: (response: ApiResponse<{ url: string }>) => {
+        if (response.success && response.data) {
           this.userData.profilePhoto = response.data.url;
-          this.getUserData(); // aggiorna i dati utente
+          this.notificationService.handleSuccess('Profile picture updated successfully!');
+          this.form.markAsDirty();
         } else {
-          this.notificationService.handleError(null, 'Errore durante l\'upload');
+          this.notificationService.handleError(null, 'Error during upload');
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'Errore durante l\'upload');
+        console.error('Error uploading profile picture:', error);
+        this.notificationService.handleError(error, 'Error during upload');
       }
     });
   }

@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
 import { RouterModule } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { NotificationService } from '../services/notification.service';
 
 @NgModule({
   declarations: [],
@@ -27,6 +29,10 @@ import { ToastModule } from 'primeng/toast';
     PaginatorModule,
     RouterModule,
     ToastModule
+  ],
+  providers: [
+    MessageService,
+    NotificationService
   ]
 })
 export class PrivateModule { } 

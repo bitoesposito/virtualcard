@@ -9,6 +9,8 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { PublicRoutingModule } from './public-routing.module';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
+import { MessageService } from 'primeng/api';
+import { NotificationService } from '../services/notification.service';
 
 @NgModule({
   declarations: [],
@@ -24,6 +26,10 @@ import { UserProfileComponent } from './components/user-profile/user-profile.com
     InputTextModule,
     ButtonModule,
     ToastModule
+  ],
+  providers: [
+    MessageService,
+    NotificationService
   ]
 })
 export class PublicModule { } 

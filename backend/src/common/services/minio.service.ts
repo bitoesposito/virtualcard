@@ -18,7 +18,9 @@ export class MinioService implements OnModuleInit {
     this.bucket = this.configService.getOrThrow<string>('MINIO_BUCKET_NAME');
 
     // Construct the full endpoint URL for internal communication
-    this.internalEndpoint = `http://${minioEndpoint}:${minioPort}`;
+    // Remove any existing protocol from minioEndpoint
+    const cleanEndpoint = minioEndpoint.replace(/^https?:\/\//, '');
+    this.internalEndpoint = `http://${cleanEndpoint}`;
 
     // Get the public endpoint (for URLs returned to clients)
     this.publicEndpoint = this.configService.get<string>('MINIO_PUBLIC_ENDPOINT') || `http://localhost:${minioPort}`;

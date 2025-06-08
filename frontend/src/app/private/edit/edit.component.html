@@ -12,16 +12,20 @@
 
 		<div class="flex gap-1 flex-column mb-2">
 			<label for="profilePicture">Profile Picture</label>
-			<img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
-                [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md max-w-20rem mb-2 cursor-pointer"
-                style="height: min-content;" (click)="fu.choose()"/>
-            <div *ngIf="!userData.profilePhoto"
-                class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem mb-2 py-3 cursor-pointer"
-                (click)="fu.choose()">
-                <i class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
-				<p class="text-color-secondary">Upload a profile picture</p>
-            </div>
-			<p-fileupload #fu mode="basic" chooseLabel="Choose" chooseIcon="pi pi-upload" name="demo[]" url="https://www.primefaces.org/cdn/api/upload.php" accept="image/*" maxFileSize="1000000" (onUpload)="onProfilePictureUpload($event)" styleClass="justify-content-start" [style]="{'display': 'none'}"/>
+			<div class="relative">
+				<div class="border-round-md cursor-pointer" (click)="triggerFileInput()">
+					<img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
+						[alt]="userData.name + ' ' + userData.surname + ' profile photo'" 
+						class="w-full max-w-20rem border-round-md"
+						style="height: min-content;"/>
+					<div *ngIf="!userData.profilePhoto"
+						class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem py-3">
+						<i class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
+						<p class="text-color-secondary">Upload a profile picture (JPG or PNG)</p>
+					</div>
+				</div>
+				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" />
+			</div>
 		</div>
 
 		<div class="flex gap-1 flex-column">

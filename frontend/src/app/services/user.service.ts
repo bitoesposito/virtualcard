@@ -59,10 +59,10 @@ export class UserService {
     });
   }
 
-  uploadProfilePicture(file: File, email: string): Observable<ApiResponse<{ url: string }>> {
+  uploadProfilePicture(file: File, email: string): Observable<ApiResponse<UserDetails>> {
     const formData = new FormData();
     formData.append('photo', file);
     formData.append('email', email);
-    return this.http.post<ApiResponse<{ url: string }>>(`${this.API_URL}/users/upload-photo`, formData);
+    return this.http.post<ApiResponse<UserDetails>>(`${this.API_URL}/users/upload-photo`, formData);
   }
 } 

@@ -647,6 +647,7 @@ export class UsersService {
     const queryRunner = this.dataSource.createQueryRunner();
     
     try {
+      this.logger.debug('Starting profile photo upload', { email });
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
@@ -659,6 +660,8 @@ export class UsersService {
         this.logger.warn('User not found during photo upload', { email });
         return ApiResponseDto.error('User not found', HttpStatus.NOT_FOUND);
       }
+
+      this.logger.debug('User found', { userId: user.uuid });
 
       // Find profile
       const profile = await this.userProfileRepository.findOne({
@@ -673,8 +676,11 @@ export class UsersService {
         return ApiResponseDto.error('Profile not found', HttpStatus.NOT_FOUND);
       }
 
+      this.logger.debug('Profile found', { profileId: profile.uuid });
+
       // Determine best format for the image
       const bestFormat = await this.imageOptimizerService.determineBestFormat(file.buffer);
+      this.logger.debug('Best format determined', { format: bestFormat });
 
       // Optimize the image
       const optimizedBuffer = await this.imageOptimizerService.optimizeImage(file.buffer, {
@@ -682,6 +688,10 @@ export class UsersService {
         maxHeight: 800,
         quality: 80,
         format: bestFormat
+      });
+      this.logger.debug('Image optimized', { 
+        originalSize: file.buffer.length,
+        optimizedSize: optimizedBuffer.length
       });
 
       // Create a new file object with the optimized buffer
@@ -693,20 +703,38 @@ export class UsersService {
 
       // Generate a unique key for the file
       const key = `${user.uuid}/${Date.now()}.${bestFormat}`;
+      this.logger.debug('Generated file key', { key });
 
-      // Upload file to MinIO
-      const fileUrl = await this.minioService.uploadFile(optimizedFile, key);
+      try {
+        // Upload file to MinIO
+        this.logger.debug('Attempting to upload file to MinIO', { 
+          bucket: this.minioService['bucket'],
+          key
+        });
+        const fileUrl = await this.minioService.uploadFile(optimizedFile, key);
+        this.logger.debug('File uploaded successfully', { fileUrl });
 
-      // Update profile with new photo URL
-      profile.profile_photo = fileUrl;
-      const updatedProfile = await queryRunner.manager.save(profile);
+        // Update profile with new photo URL
+        profile.profile_photo = fileUrl;
+        const updatedProfile = await queryRunner.manager.save(profile);
+        this.logger.debug('Profile updated with new photo URL');
 
-      await queryRunner.commitTransaction();
-      return ApiResponseDto.success(updatedProfile, 'Profile photo uploaded successfully');
+        await queryRunner.commitTransaction();
+        return ApiResponseDto.success(updatedProfile, 'Profile photo uploaded successfully');
+      } catch (uploadError) {
+        this.logger.error('Error during MinIO upload:', {
+          error: uploadError.message,
+          stack: uploadError.stack,
+          bucket: this.minioService['bucket'],
+          key
+        });
+        throw uploadError;
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error('Failed to upload profile photo:', {
         error: error.message,
+        stack: error.stack,
         email
       });
       return ApiResponseDto.error('Failed to upload profile photo', HttpStatus.INTERNAL_SERVER_ERROR);

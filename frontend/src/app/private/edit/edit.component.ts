@@ -50,6 +50,7 @@ export class EditComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef;
   
   userData: any = {};
+  isUploading = false;
   area_code = (languages as any).default.map((lang: Language) => ({
     label: lang.iso.toUpperCase(),
     value: lang.code,
@@ -59,17 +60,17 @@ export class EditComponent implements OnInit {
   isAdmin = false;
   slugError: string | null = null;
   form: FormGroup = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    surname: new FormControl('', [Validators.required]),
-    areaCode: new FormControl('+39', [Validators.required, Validators.pattern(/^\+\d{1,4}(-\d{1,4})?$/)]),
-    phone: new FormControl('', [Validators.required]),
-    website: new FormControl('', [
+    name: new FormControl({ value: '', disabled: false }, [Validators.required]),
+    surname: new FormControl({ value: '', disabled: false }, [Validators.required]),
+    areaCode: new FormControl({ value: '+39', disabled: false }, [Validators.required, Validators.pattern(/^\+\d{1,4}(-\d{1,4})?$/)]),
+    phone: new FormControl({ value: '', disabled: false }, [Validators.required]),
+    website: new FormControl({ value: '', disabled: false }, [
       Validators.pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/)
     ]),
-    isWebsiteEnabled: new FormControl(false),
-    isWhatsappEnabled: new FormControl(false),
-    isVcardEnabled: new FormControl(false),
-    slug: new FormControl('', [
+    isWebsiteEnabled: new FormControl({ value: false, disabled: false }),
+    isWhatsappEnabled: new FormControl({ value: false, disabled: false }),
+    isVcardEnabled: new FormControl({ value: false, disabled: false }),
+    slug: new FormControl({ value: '', disabled: false }, [
       Validators.required,
       Validators.pattern(/^[a-z0-9-]{3,50}$/),
       Validators.minLength(3),
@@ -290,6 +291,8 @@ export class EditComponent implements OnInit {
   }
 
   triggerFileInput() {
+    // Reset the file input value to allow selecting the same file again
+    this.fileInput.nativeElement.value = '';
     this.fileInput.nativeElement.click();
   }
 
@@ -308,24 +311,49 @@ export class EditComponent implements OnInit {
     }
 
     // Check file size (1MB max)
-    if (file.size > 1000000) {
-      this.notificationService.handleWarning('Image size cannot exceed 1MB');
+    if (file.size > 5 * 1024 * 1024) {
+      this.notificationService.handleWarning('Image size cannot exceed 5MB');
       return;
     }
 
+    this.isUploading = true;
+    // Disable all form controls
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control) {
+        control.disable({ emitEvent: false });
+      }
+    });
+
     this.userService.uploadProfilePicture(file, this.userData.email).subscribe({
-      next: (response: ApiResponse<{ url: string }>) => {
+      next: (response: ApiResponse<UserDetails>) => {
         if (response.success && response.data) {
-          this.userData.profilePhoto = response.data.url;
           this.notificationService.handleSuccess('Profile picture updated successfully!');
-          this.form.markAsDirty();
+          // Reload the page to show the new image
+          window.location.reload();
         } else {
           this.notificationService.handleError(null, 'Error during upload');
+          this.isUploading = false;
+          // Re-enable all form controls
+          Object.keys(this.form.controls).forEach(key => {
+            const control = this.form.get(key);
+            if (control) {
+              control.enable();
+            }
+          });
         }
       },
       error: (error) => {
         console.error('Error uploading profile picture:', error);
         this.notificationService.handleError(error, 'Error during upload');
+        this.isUploading = false;
+        // Re-enable all form controls
+        Object.keys(this.form.controls).forEach(key => {
+          const control = this.form.get(key);
+          if (control) {
+            control.enable();
+          }
+        });
       }
     });
   }

@@ -1,7 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand, GetObjectCommand, CreateBucketCommand, HeadBucketCommand, PutBucketPolicyCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import * as https from 'https';
 
 @Injectable()
 export class MinioService implements OnModuleInit {
@@ -9,6 +9,7 @@ export class MinioService implements OnModuleInit {
   private bucket: string;
   private publicEndpoint: string;
   private internalEndpoint: string;
+  private readonly logger = new Logger(MinioService.name);
 
   constructor(private configService: ConfigService) {
     const minioEndpoint = this.configService.getOrThrow<string>('MINIO_ENDPOINT');
@@ -17,15 +18,24 @@ export class MinioService implements OnModuleInit {
     const minioPassword = this.configService.getOrThrow<string>('MINIO_ROOT_PASSWORD');
     this.bucket = this.configService.getOrThrow<string>('MINIO_BUCKET_NAME');
 
-    // Construct the full endpoint URL for internal communication
-    // Remove any existing protocol from minioEndpoint
-    const cleanEndpoint = minioEndpoint.replace(/^https?:\/\//, '');
-    this.internalEndpoint = `http://${cleanEndpoint}`;
+    // For internal communication, use the Docker service name
+    this.internalEndpoint = `http://minio:${minioPort}`;
+    
+    // For public URLs, use the main domain with /minio path
+    const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
+    const protocol = useSSL ? 'https' : 'http';
+    
+    // Remove any existing protocol and port from the endpoint
+    const cleanEndpoint = minioEndpoint.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+    this.publicEndpoint = `${protocol}://${cleanEndpoint}/minio`;
 
-    // Get the public endpoint (for URLs returned to clients)
-    this.publicEndpoint = this.configService.get<string>('MINIO_PUBLIC_ENDPOINT') || `http://localhost:${minioPort}`;
+    this.logger.debug('MinIO service initialized with endpoints:', {
+      internalEndpoint: this.internalEndpoint,
+      publicEndpoint: this.publicEndpoint,
+      bucket: this.bucket
+    });
 
-    // Create two S3 clients: one for internal operations and one for generating signed URLs
+    // Create S3 client with specific configuration
     this.s3Client = new S3Client({
       endpoint: this.internalEndpoint,
       region: 'us-east-1',
@@ -34,82 +44,141 @@ export class MinioService implements OnModuleInit {
         secretAccessKey: minioPassword,
       },
       forcePathStyle: true,
+      // Disable SSL verification for local development
+      requestHandler: {
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false
+        })
+      }
     });
   }
 
   async onModuleInit() {
-    await this.createBucketIfNotExists();
-    await this.setPublicBucketPolicy();
-  }
+    this.logger.debug('Initializing MinIO service...');
+    this.logger.debug(`Using bucket: ${this.bucket}`);
+    this.logger.debug(`Internal endpoint: ${this.internalEndpoint}`);
+    this.logger.debug(`Public endpoint: ${this.publicEndpoint}`);
 
-  private async createBucketIfNotExists(): Promise<void> {
+    await this.createBucketIfNotExists();
+    await this.setBucketPolicy();
+
+    // Verify bucket access
     try {
-      await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+      const command = new HeadBucketCommand({ Bucket: this.bucket });
+      await this.s3Client.send(command);
+      this.logger.debug('Successfully verified bucket access');
     } catch (error) {
-      await this.s3Client.send(new CreateBucketCommand({ Bucket: this.bucket }));
+      this.logger.error(`Failed to access bucket: ${error.message}`);
+      throw error;
     }
   }
 
-  private async setPublicBucketPolicy(): Promise<void> {
-    const policy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Effect: 'Allow',
-          Principal: '*',
-          Action: ['s3:GetObject'],
-          Resource: [`arn:aws:s3:::${this.bucket}/*`],
-        },
-      ],
-    };
-
+  private async createBucketIfNotExists() {
     try {
-      await this.s3Client.send(
-        new PutBucketPolicyCommand({
-          Bucket: this.bucket,
-          Policy: JSON.stringify(policy),
-        })
-      );
+      const command = new HeadBucketCommand({ Bucket: this.bucket });
+      await this.s3Client.send(command);
+      this.logger.debug(`Bucket ${this.bucket} already exists`);
     } catch (error) {
-      console.error('Failed to set bucket policy:', error);
+      if (error.name === 'NotFound') {
+        const createCommand = new CreateBucketCommand({
+          Bucket: this.bucket,
+        });
+        await this.s3Client.send(createCommand);
+        this.logger.debug(`Created bucket ${this.bucket}`);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private async setBucketPolicy() {
+    try {
+      const policy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: '*',
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${this.bucket}/*`]
+          }
+        ]
+      };
+
+      const command = new PutBucketPolicyCommand({
+        Bucket: this.bucket,
+        Policy: JSON.stringify(policy)
+      });
+
+      await this.s3Client.send(command);
+      this.logger.debug('Successfully set bucket policy for public read access');
+    } catch (error) {
+      this.logger.error('Failed to set bucket policy:', error);
+      throw error;
     }
   }
 
   async uploadFile(file: Express.Multer.File, key: string): Promise<string> {
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
+    this.logger.debug('Starting file upload to MinIO', {
+      bucket: this.bucket,
+      key,
+      fileSize: file.buffer.length,
+      contentType: file.mimetype
     });
 
-    await this.s3Client.send(command);
-    return await this.getFileUrl(key);
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      });
+
+      this.logger.debug('Sending PutObjectCommand to MinIO', {
+        endpoint: this.internalEndpoint,
+        bucket: this.bucket,
+        key
+      });
+
+      await this.s3Client.send(command);
+      this.logger.debug('File uploaded successfully to MinIO');
+
+      const fileUrl = await this.getFileUrl(key);
+      this.logger.debug('Generated signed URL for file', { fileUrl });
+      
+      return fileUrl;
+    } catch (error) {
+      this.logger.error('Failed to upload file to MinIO:', {
+        error: error.message,
+        stack: error.stack,
+        bucket: this.bucket,
+        key
+      });
+      throw error;
+    }
   }
 
   async getFileUrl(key: string): Promise<string> {
     try {
-      // Create a new S3 client with the public endpoint for generating signed URLs
-      const publicS3Client = new S3Client({
-        endpoint: this.publicEndpoint,
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: this.configService.getOrThrow<string>('MINIO_ROOT_USER'),
-          secretAccessKey: this.configService.getOrThrow<string>('MINIO_ROOT_PASSWORD'),
-        },
-        forcePathStyle: true,
+      this.logger.debug('Generating URL for file', {
+        bucket: this.bucket,
+        key,
+        publicEndpoint: this.publicEndpoint
       });
 
-      const command = new GetObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
-
-      // Generate the signed URL using the public endpoint client
-      return await getSignedUrl(publicS3Client, command, { expiresIn: 3600 });
+      // Return a clean URL without AWS signature parameters
+      const fileUrl = `${this.publicEndpoint}/${this.bucket}/${key}`;
+      this.logger.debug('Generated clean URL for file', { fileUrl });
+      return fileUrl;
     } catch (error) {
-      console.error('Error generating signed URL:', error);
-      throw new Error('Failed to generate file URL');
+      this.logger.error('Error generating file URL:', {
+        error: error.message,
+        stack: error.stack,
+        bucket: this.bucket,
+        key,
+        endpoint: this.publicEndpoint
+      });
+      throw new Error(`Failed to generate file URL: ${error.message}`);
     }
   }
 }

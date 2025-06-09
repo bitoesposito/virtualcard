@@ -14,17 +14,26 @@
 			<label for="profilePicture">Profile Picture</label>
 			<div class="relative">
 				<div class="border-round-md cursor-pointer" (click)="triggerFileInput()">
-					<img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
-						[alt]="userData.name + ' ' + userData.surname + ' profile photo'" 
-						class="w-full max-w-20rem border-round-md"
-						style="height: min-content;"/>
-					<div *ngIf="!userData.profilePhoto"
+					<div *ngIf="userData.profile_photo">
+						<div class="flex gap-2 align-items-center">
+							<div class="relative">
+								<img [src]="userData.profile_photo"
+							[alt]="userData.name + ' ' + userData.surname + ' profile photo'" 
+							class="w-full h-4rem w-4rem border-circle border-2 surface-border object-cover"/>
+							<i class="pi pi-pencil text-sm border-round-md text-white text-color-secondary bg-primary-reverse p-1 absolute bottom-0 right-0 surface-border border-1"></i>
+							</div>
+							<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
+							<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture (JPG or PNG)' }}</p>
+						</div>
+					</div>
+					<div *ngIf="!userData.profile_photo"
 						class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem py-3">
-						<i class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
-						<p class="text-color-secondary">Upload a profile picture (JPG or PNG)</p>
+						<i *ngIf="!isUploading" class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
+						<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
+						<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture (JPG or PNG)' }}</p>
 					</div>
 				</div>
-				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" />
+				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" [disabled]="isUploading" />
 			</div>
 		</div>
 
@@ -73,7 +82,7 @@
 			<label for="slug">Profile Link</label>
 			<input id="slug" type="text" pInputText formControlName="slug" 
 				[class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" 
-				placeholder="Enter your profile link">
+				placeholder="Enter your profile link" [disabled]="isUploading">
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['required'] && form.get('slug')?.touched">
 				Profile link is required
 			</small>
@@ -94,7 +103,7 @@
 		<p-divider />
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" />
+			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" [disabled]="isUploading" />
 			<div class="flex flex-column">
 				<label for="websiteSelect" class="ml-2">
 					Enable website button
@@ -104,7 +113,7 @@
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" />
+			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" [disabled]="isUploading" />
 			<div class="flex flex-column">
 				<label for="whatsappSelect" class="ml-2">
 					Enable WhatsApp button
@@ -114,7 +123,7 @@
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" />
+			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" [disabled]="isUploading" />
 			<div class="flex flex-column">
 				<label for="vCardSelect" class="ml-2">
 					Enable vCard button
@@ -124,12 +133,12 @@
 		</div>
 
 		<div class="flex gap-2 flex-column mt-2">
-			<p-button label="Update Profile" fluid="true" type="submit" [disabled]="!form.valid" />
+			<p-button label="Update Profile" fluid="true" type="submit" [disabled]="!form.valid || isUploading" />
 			<div class="flex gap-2 w-full">
-				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured()"/>
-				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}" (click)="shareProfile()"/>
+				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
+				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}" (click)="shareProfile()" [disabled]="isUploading"/>
 			</div>
-			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" />
+			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
 		</div>
 	</form>
 </main>

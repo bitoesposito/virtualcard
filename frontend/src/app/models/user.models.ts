@@ -18,6 +18,7 @@ export interface User {
   isVcardEnabled: boolean;
   slug: string;
   email: string;
+  profilePhoto?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export interface UserDetails extends User {
   role: UserRole;
   createdAt: string;
   is_configured: boolean;
+  profile_photo: string;
 }
 
 /**

@@ -57,7 +57,7 @@ export class DashboardComponent {
   loading = false;
 
   form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)])
+    email: new FormControl({ value: '', disabled: false }, [Validators.required, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)])
   });
 
   constructor(

@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 import { VerifyRequest } from '../../../models/auth.models';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-verify',
@@ -44,6 +45,7 @@ export class VerifyComponent implements OnInit {
   token: string | null = null
   progressValue: number = 100;
   private progressInterval: any;
+  isDarkMode$;
 
   form: FormGroup = new FormGroup({
     password: new FormControl(null, [
@@ -58,8 +60,11 @@ export class VerifyComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private confirmationService: ConfirmationService
-  ) { }
+    private confirmationService: ConfirmationService,
+    private themeService: ThemeService
+  ) {
+    this.isDarkMode$ = this.themeService.isDarkMode$;
+  }
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token');
@@ -163,5 +168,7 @@ export class VerifyComponent implements OnInit {
     }
   }
 
-
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
+  }
 }

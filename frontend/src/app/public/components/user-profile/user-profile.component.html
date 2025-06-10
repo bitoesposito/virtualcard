@@ -1,11 +1,6 @@
 <p-toast class="absolute" />
 
-<main class="max-w-20rem m-auto mt-3 flex flex-column gap-3" routerLinkActive="router-link-active">
-
-    <div>
-        <img src="./logo-full.svg" alt="vcarder_logo" height="50"
-            style="position: fixed; bottom: 1rem; opacity: .25; display: flex; left: 50%; transform: translate(-50%, 0);" />
-    </div>
+<main class="max-w-26rem w-full px-3 m-auto mt-3 flex flex-column gap-3" routerLinkActive="router-link-active">
 
     <p-button *ngIf="isAdmin" [disabled]="!isAdmin" label="Dashboard" icon="pi pi-arrow-left" severity="secondary"
         outlined="true" [routerLink]="['/private/dashboard']" />
@@ -14,10 +9,10 @@
         <!-- Profile Photo -->
         <div class="flex justify-content-center">
             <img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
-                [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md max-w-20rem"
+                [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md w-full"
                 style="height: min-content;"/>
             <div *ngIf="!userData.profilePhoto"
-                class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem"
+                class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full"
                 style="height: min-content; min-height: 10rem;">
                 <i class="pi pi-user text-6xl text-white text-color-secondary"></i>
             </div>

@@ -1,12 +1,12 @@
 <p-toast class="absolute" />
 
-<main class="max-w-20rem m-auto mt-5">
+<main class="max-w-26rem w-full px-3 m-auto mt-5">
 	<form [formGroup]="form" (ngSubmit)="editProfile()" class="flex flex-column gap-2 pb-4">
 		<p-button *ngIf="isAdmin" label="Go to dashboard" [routerLink]="'private/dashboard'" icon="pi pi-arrow-left" severity="secondary" outlined="true" class="mb-2"/>
 		<p class="text-2xl font-semibold">Edit Profile</p>
 
 		<div *ngIf="!userData?.slug" class="p-3 border-round surface-100 mb-3">
-			<p class="text-lg font-medium mb-2">Welcome to vCarder!</p>
+			<p class="text-lg font-medium mb-2">Welcome to virtualcard!</p>
 			<p class="text-sm text-color-secondary">To make your profile public, complete the setup by entering your details and a custom link for your profile.</p>
 		</div>
 
@@ -27,7 +27,7 @@
 						</div>
 					</div>
 					<div *ngIf="!userData.profile_photo"
-						class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-20rem py-3">
+						class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full px-3 py-3">
 						<i *ngIf="!isUploading" class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
 						<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
 						<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture (JPG or PNG)' }}</p>
@@ -35,6 +35,10 @@
 				</div>
 				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" [disabled]="isUploading" />
 			</div>
+		</div>
+
+		<div class="upload-section" *ngIf="isUploading">
+			<small class="text-muted">Uploading profile picture...</small>
 		</div>
 
 		<div class="flex gap-1 flex-column">

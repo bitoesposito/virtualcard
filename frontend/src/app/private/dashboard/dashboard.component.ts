@@ -17,6 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { finalize } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -53,6 +54,7 @@ export class DashboardComponent {
   currentUserUuid: string = ''
   showNewUserDialog: boolean = false
   searchTerm: string = '';
+  isDarkMode$;
 
   loading = false;
 
@@ -65,8 +67,10 @@ export class DashboardComponent {
     private router: Router,
     private userService: UserService,
     private confirmationService: ConfirmationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private themeService: ThemeService
   ) {
+    this.isDarkMode$ = this.themeService.isDarkMode$;
     this.getUsers();
   }
 
@@ -234,5 +238,9 @@ export class DashboardComponent {
 
   toggleNewUserDialog() {
     this.showNewUserDialog = !this.showNewUserDialog
+  }
+
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
   }
 }

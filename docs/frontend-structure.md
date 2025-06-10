@@ -1,7 +1,7 @@
-# Frontend Angular vCarder Structure
+# Frontend Angular Virtualcard Structure
 
 ## Overview
-This documentation describes the folder structure, main components, and permission management for the Angular frontend application vCarder.
+This documentation describes the folder structure, main components, and permission management for the Angular frontend application virtualcard.
 
 ---
 

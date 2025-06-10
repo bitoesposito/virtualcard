@@ -13,6 +13,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -38,6 +39,7 @@ import { jwtDecode } from 'jwt-decode';
 })
 export class LoginComponent implements OnInit {
   loading = false;
+  isDarkMode$;
 
   form: FormGroup = new FormGroup({
     email: new FormControl(null, [Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)]),
@@ -50,8 +52,11 @@ export class LoginComponent implements OnInit {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private themeService: ThemeService
+  ) {
+    this.isDarkMode$ = this.themeService.isDarkMode$;
+  }
 
   ngOnInit() {
     this.checkTokenAndRedirect();
@@ -139,5 +144,9 @@ export class LoginComponent implements OnInit {
           this.notificationService.handleError(error, 'An error occurred during login');
         }
       });
+  }
+
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
   }
 }

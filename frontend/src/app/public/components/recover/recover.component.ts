@@ -10,6 +10,7 @@ import { ToastModule } from 'primeng/toast';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-recover',
@@ -33,6 +34,7 @@ import { finalize } from 'rxjs';
 })
 export class RecoverComponent {
   loading = false;
+  isDarkMode$;
 
   form: FormGroup = new FormGroup({
     email: new FormControl(null, [Validators.required, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)])
@@ -41,8 +43,11 @@ export class RecoverComponent {
   constructor(
     private notificationService: NotificationService,
     private router: Router,
-    private authService: AuthService
-  ) { }
+    private authService: AuthService,
+    private themeService: ThemeService
+  ) {
+    this.isDarkMode$ = this.themeService.isDarkMode$;
+  }
 
   get email(): FormControl {
     return this.form.get('email') as FormControl;
@@ -70,5 +75,9 @@ export class RecoverComponent {
           this.notificationService.handleError(error, 'An error occurred during password recovery');
         }
       });
+  }
+
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
   }
 }

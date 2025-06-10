@@ -1,6 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Blinker:wght@100;200;300;400;600;700;800;900&display=swap');
 
+// Global styles
+
 p, h1, h2, h3, h4, h5, span {
   margin: 0;
   padding: 0;
@@ -14,4 +16,16 @@ p, h1, h2, h3, h4, h5, span {
   padding: 0;
   line-height: 1;
   box-sizing: border-box;
+}
+
+// Mobile zoom
+
+@media screen and (max-width: 576px) {
+  body {
+    zoom: 1.125;
+  }
+
+  p-toast {
+    zoom: 0.9
+  }
 }

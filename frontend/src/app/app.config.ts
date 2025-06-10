@@ -1,15 +1,15 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
 import Aura from '@primeng/themes/aura';
-
 import { routes } from './app.routes';
 import { definePreset } from '@primeng/themes';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { authInterceptor } from './interceptors/auth.interceptor';
+import { provideClientHydration } from '@angular/platform-browser';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 const theme = definePreset(Aura, {
   primitive: {
@@ -673,10 +673,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideAnimationsAsync(),
+    provideClientHydration(),
+    provideAnimations(),
     providePrimeNG({
       theme: {
-        preset: theme
+        preset: theme,
+        options: {
+          darkModeSelector: '.my-app-dark'
+        }
       }
     }),
     provideHttpClient(

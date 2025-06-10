@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -16,9 +16,11 @@ import { Language, UserDetails } from '../../models/user.models';
 import { ApiResponse } from '../../models/api.models';
 import { jwtDecode } from 'jwt-decode';
 import { CommonModule } from '@angular/common';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { DividerModule } from 'primeng/divider';
 import { FileUploadModule, FileUpload } from 'primeng/fileupload';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-edit',
@@ -36,7 +38,8 @@ import { FileUploadModule, FileUpload } from 'primeng/fileupload';
     CommonModule,
     DividerModule,
     FileUploadModule,
-    ImageModule
+    ImageModule,
+    ProgressBarModule
   ],
   providers: [
     NotificationService,
@@ -45,7 +48,7 @@ import { FileUploadModule, FileUpload } from 'primeng/fileupload';
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnInit {
+export class EditComponent implements OnInit, OnDestroy {
   @ViewChild('fu') fileUpload!: FileUpload;
   @ViewChild('fileInput') fileInput!: ElementRef;
   
@@ -77,6 +80,8 @@ export class EditComponent implements OnInit {
       Validators.maxLength(50)
     ])
   });
+  private destroy$ = new Subject<void>();
+  uploadProgress = 0;
 
   constructor(
     private userService: UserService,
@@ -310,13 +315,15 @@ export class EditComponent implements OnInit {
       return;
     }
 
-    // Check file size (1MB max)
+    // Check file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       this.notificationService.handleWarning('Image size cannot exceed 5MB');
       return;
     }
 
     this.isUploading = true;
+    this.uploadProgress = 0;
+    
     // Disable all form controls
     Object.keys(this.form.controls).forEach(key => {
       const control = this.form.get(key);
@@ -325,36 +332,41 @@ export class EditComponent implements OnInit {
       }
     });
 
-    this.userService.uploadProfilePicture(file, this.userData.email).subscribe({
-      next: (response: ApiResponse<UserDetails>) => {
-        if (response.success && response.data) {
-          this.notificationService.handleSuccess('Profile picture updated successfully!');
-          // Reload the page to show the new image
-          window.location.reload();
-        } else {
-          this.notificationService.handleError(null, 'Error during upload');
-          this.isUploading = false;
-          // Re-enable all form controls
-          Object.keys(this.form.controls).forEach(key => {
-            const control = this.form.get(key);
-            if (control) {
-              control.enable();
-            }
-          });
-        }
-      },
-      error: (error) => {
-        console.error('Error uploading profile picture:', error);
-        this.notificationService.handleError(error, 'Error during upload');
-        this.isUploading = false;
-        // Re-enable all form controls
-        Object.keys(this.form.controls).forEach(key => {
-          const control = this.form.get(key);
-          if (control) {
-            control.enable();
+    this.userService.uploadProfilePicture(file, this.userData.email)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: ApiResponse<UserDetails>) => {
+          if (response.success && response.data) {
+            this.notificationService.handleSuccess('Profile picture updated successfully!');
+            // Reload the page to show the new image
+            window.location.reload();
+          } else {
+            this.notificationService.handleError(null, 'Error during upload');
+            this.resetUploadState();
           }
-        });
+        },
+        error: (error) => {
+          console.error('Error uploading profile picture:', error);
+          this.notificationService.handleError(error, 'Error during upload');
+          this.resetUploadState();
+        }
+      });
+  }
+
+  private resetUploadState() {
+    this.isUploading = false;
+    this.uploadProgress = 0;
+    // Re-enable all form controls
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control) {
+        control.enable();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

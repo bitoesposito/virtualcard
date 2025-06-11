@@ -9,42 +9,51 @@
     <p-button *ngIf="isAdmin" [disabled]="!isAdmin" label="Dashboard" icon="pi pi-arrow-left" severity="secondary"
         outlined="true" [routerLink]="['/private/dashboard']" />
 
-    <div *ngIf="userData" class="flex flex-column gap-2">
+    <div *ngIf="userData" class="flex flex-column gap-3 mb-6">
         <!-- Profile Photo -->
-        <div class="flex justify-content-center">
-            <img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
-                [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md w-full"
-                style="max-height: 16rem; object-fit: cover;"/>
-            <div *ngIf="!userData.profilePhoto"
-                class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full"
-                style="height: min-content; min-height: 10rem;">
-                <i class="pi pi-user text-6xl text-white text-color-secondary"></i>
+        <div class="w-full relative">
+            <div class="flex justify-content-center">
+                <img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
+                    [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md w-full"
+                    style="max-height: 16rem; object-fit: cover;"/>
+                <div *ngIf="!userData.profilePhoto"
+                    class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full"
+                    style="height: min-content; min-height: 10rem;">
+                    <i class="pi pi-user text-6xl text-white text-color-secondary"></i>
+                </div>
             </div>
+    
+            <h2 class="uppercase font-medium w-min p-2 bg-primary-reverse text-white white-space-nowrap absolute bottom-0 right-0" style="transform: skew(0deg, -5deg);">
+                {{userData.name}} {{userData.surname}}
+            </h2>
         </div>
 
-        <p class="text-2xl uppercase">
-            {{userData.name}} {{userData.surname}}
-        </p>
-
-        <a class="w-full" *ngIf="userData.isWhatsappEnabled"
+        <div class="flex flex-column gap-2">
+            <a id="profile-button"  class="w-full" *ngIf="userData.isWhatsappEnabled"
             [href]="'https://wa.me/' + userData.areaCode + userData.phone">
-            <p-button label="Message me on WhatsApp" fluid="true"></p-button>
-        </a>
+                <i class="pi pi-whatsapp text-xl"></i>
+                <p>Message on WhatsApp</p>
+            </a>
 
-        <a class="w-full" *ngIf="userData.isWebsiteEnabled"
-            [href]="userData.website.startsWith('https') ? userData.website : ('https://' + userData.website)">
-            <p-button label="Visit my website" fluid="true"></p-button>
-        </a>
+            <a id="profile-button" class="w-full" *ngIf="userData.isWebsiteEnabled" [href]="userData.website.startsWith('https') ? userData.website : ('https://' + userData.website)">
+                <i class="pi pi-globe text-xl"></i>
+                <p>Visit my website</p>
+            </a>
 
-        <a class="w-full" *ngIf="userData.phone" [href]="'tel:' + userData.areaCode + userData.phone">
-            <p-button label="Call me" fluid="true"></p-button>
-        </a>
+            <a id="profile-button" class="w-full" *ngIf="userData.phone" [href]="'tel:' + userData.areaCode + userData.phone">
+                <i class="pi pi-phone text-xl"></i>
+                <p>Call me</p>
+            </a>
 
-        <a class="w-full" *ngIf="userData.email" [href]="'mailto:' + userData.email">
-            <p-button label="Send Email" fluid="true"></p-button>
-        </a>
+            <a id="profile-button" class="w-full" *ngIf="userData.email" [href]="'mailto:' + userData.email">
+                <i class="pi pi-envelope text-xl"></i>
+                <p>Send Email</p>
+            </a>
+        </div>
 
-        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" />
+        <p class="text-color-secondary w-full text-center">OR</p>
+
+        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" size="large"/>
     </div>
 
     <div *ngIf="notFound" class="flex flex-column gap-3">

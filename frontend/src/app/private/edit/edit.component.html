@@ -23,14 +23,20 @@
 							<i class="pi pi-pencil text-sm border-round-md text-white text-color-secondary bg-primary-reverse p-1 absolute bottom-0 right-0 surface-border border-1"></i>
 							</div>
 							<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
-							<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture (JPG or PNG)' }}</p>
+							<div class="flex flex-column gap-0">
+								<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
+								<p class="text-xs text-color-secondary">JPG, PNG, WEBP, max size of 10MB</p>
+							</div>
 						</div>
 					</div>
 					<div *ngIf="!userData.profile_photo"
 						class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full px-3 py-3">
 						<i *ngIf="!isUploading" class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
 						<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
-						<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture (JPG or PNG)' }}</p>
+						<div class="flex flex-column gap-0">
+							<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
+							<p class="text-xs text-color-secondary">JPG, PNG, WEBP, max size of 10MB</p>
+						</div>
 					</div>
 				</div>
 				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" [disabled]="isUploading" />

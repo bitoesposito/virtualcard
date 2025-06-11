@@ -6,6 +6,9 @@ import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../../services/notification.service';
 import { UserService } from '../../../services/user.service';
+import { DialogModule } from 'primeng/dialog';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -14,7 +17,9 @@ import { UserService } from '../../../services/user.service';
     ButtonModule,
     RouterModule,
     CommonModule,
-    ButtonModule
+    ButtonModule,
+    DialogModule,
+    QRCodeComponent
   ],
   providers: [
     MessageService,
@@ -30,14 +35,20 @@ export class UserProfileComponent implements OnInit {
   uuid: any = ''
   uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   userData: any = null
-  notFound: boolean = false
+  notFound: boolean = false;
+  saveContactDialog: boolean = false;
+  qrCodeContent: string = '';
+  isDarkMode$;
 
   constructor(
     private userService: UserService,
     private route: ActivatedRoute,
     private router: Router,
-    private notificationService: NotificationService
-  ) { }
+    private notificationService: NotificationService,
+    private themeService: ThemeService
+  ) {
+    this.isDarkMode$ = this.themeService.isDarkMode$;
+  }
 
   ngOnInit(): void {
     this.slug = this.route.snapshot.paramMap.get('slug') || null;
@@ -85,8 +96,8 @@ export class UserProfileComponent implements OnInit {
     })
   }
 
-  vCard() {
-    if (!this.userData) return;
+  private generateVCardContent(): string {
+    if (!this.userData) return '';
 
     const lines = [
       'BEGIN:VCARD',
@@ -98,7 +109,13 @@ export class UserProfileComponent implements OnInit {
       'END:VCARD'
     ].filter(Boolean);
 
-    const vcardContent = lines.join('\r\n');
+    return lines.join('\r\n');
+  }
+
+  vCard() {
+    if (!this.userData) return;
+
+    const vcardContent = this.generateVCardContent();
     const blob = new Blob([vcardContent], { type: 'text/vcard' });
     const url = window.URL.createObjectURL(blob);
 
@@ -109,5 +126,12 @@ export class UserProfileComponent implements OnInit {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  }
+
+  toggleSaveContactDialog() {
+    this.saveContactDialog = !this.saveContactDialog;
+    if (this.saveContactDialog && this.userData) {
+      this.qrCodeContent = this.generateVCardContent();
+    }
   }
 }

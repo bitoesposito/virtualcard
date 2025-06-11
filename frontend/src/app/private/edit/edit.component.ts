@@ -338,8 +338,11 @@ export class EditComponent implements OnInit, OnDestroy {
         next: (response: ApiResponse<UserDetails>) => {
           if (response.success && response.data) {
             this.notificationService.handleSuccess('Profile picture updated successfully!');
-            // Reload the page to show the new image
-            window.location.reload();
+            // Update the userData with the new profile photo URL
+            if (this.userData) {
+              this.userData.profile_photo = response.data.profile_photo;
+            }
+            this.resetUploadState();
           } else {
             this.notificationService.handleError(null, 'Error during upload');
             this.resetUploadState();

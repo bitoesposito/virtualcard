@@ -145,8 +145,8 @@
 		<div class="flex gap-2 flex-column mt-2">
 			<p-button label="Update Profile" fluid="true" type="submit" [disabled]="!form.valid || isUploading" />
 			<div class="flex gap-2 w-full">
-				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" class="w-full" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
-				<p-button icon="pi pi-share-alt text-xs" severity="secondary" outlined="true"  [style]="{height: '100%'}" (click)="shareProfile()" [disabled]="isUploading"/>
+				<p-button icon="pi pi-clone text-xs" label="Share Profile" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading"/>
+				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
 			</div>
 			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
 		</div>

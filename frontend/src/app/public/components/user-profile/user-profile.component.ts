@@ -134,4 +134,12 @@ export class UserProfileComponent implements OnInit {
       this.qrCodeContent = this.generateVCardContent();
     }
   }
+
+  toggleDarkMode() {
+    this.themeService.toggleDarkMode();
+  }
+
+  goBack() {
+    this.router.navigate(['/private/dashboard']);
+  }
 }

@@ -2,8 +2,12 @@
 
 <main class="max-w-26rem w-full px-3 m-auto mt-3 flex flex-column gap-3" routerLinkActive="router-link-active">
 
-    <div class="w-full">
-        <img [src]="(isDarkMode$ | async) ? './logo-full.svg' : './logo-full-dark.svg'" alt="virtualcard_logo" height="50"/>
+    <div class="flex gap-2 justify-content-between align-items-center">
+        <a href="/">
+            <img [src]="(isDarkMode$ | async) ? './logo-full.svg' : './logo-full-dark.svg'" alt="virtualcard_logo" height="50"/>
+        </a>
+
+        <p-button [icon]="(isDarkMode$ | async) ? 'pi pi-moon' : 'pi pi-sun'" severity="secondary" outlined="true" (click)="toggleDarkMode()" pTooltip="Toggle dark mode" tooltipPosition="bottom"/>
     </div>
 
     <p-button *ngIf="isAdmin" [disabled]="!isAdmin" label="Dashboard" icon="pi pi-arrow-left" severity="secondary"
@@ -15,7 +19,7 @@
             <div class="flex justify-content-center">
                 <img *ngIf="userData.profilePhoto" [src]="userData.profilePhoto"
                     [alt]="userData.name + ' ' + userData.surname + ' profile photo'" class="border-round-md w-full"
-                    style="max-height: 16rem; object-fit: cover;"/>
+                    style="max-height: 16rem; object-fit: cover; border: 4px solid #121212"/>
                 <div *ngIf="!userData.profilePhoto"
                     class="border-round-md flex align-items-center justify-content-center surface-200 w-full h-min max-w-26rem w-full"
                     style="height: min-content; min-height: 10rem;">
@@ -23,41 +27,40 @@
                 </div>
             </div>
     
-            <h2 class="uppercase font-medium w-min p-2 bg-primary-reverse text-white white-space-nowrap absolute bottom-0 right-0" style="transform: skew(0deg, -5deg);">
+            <h2 class="uppercase font-medium w-min p-2 text-white white-space-nowrap absolute bottom-0 right-0" style="transform: skew(0deg, -5deg); background-color: #121212">
                 {{userData.name}} {{userData.surname}}
             </h2>
         </div>
 
         <div class="flex flex-column gap-2">
-            <a id="profile-button"  class="w-full" *ngIf="userData.isWhatsappEnabled"
-            [href]="'https://wa.me/' + userData.areaCode + userData.phone">
-                <i class="pi pi-whatsapp text-xl"></i>
-                <p>Message on WhatsApp</p>
+            <a class="w-full no-underline" *ngIf="userData.isWhatsappEnabled" [href]="'https://wa.me/' + userData.areaCode + userData.phone">
+                <p-button label="Message on WhatsApp" severity="secondary" outlined="true" icon="pi pi-whatsapp" fluid="true" styleClass="p-3 text-lg flex justify-content-start text-color"/>
             </a>
 
-            <a id="profile-button" class="w-full" *ngIf="userData.isWebsiteEnabled" [href]="userData.website.startsWith('https') ? userData.website : ('https://' + userData.website)">
-                <i class="pi pi-globe text-xl"></i>
-                <p>Visit my website</p>
+            <a class="w-full no-underline" *ngIf="userData.isWebsiteEnabled" [href]="userData.website.startsWith('https') ? userData.website : ('https://' + userData.website)">
+                <p-button label="Visit my website" severity="secondary" outlined="true" icon="pi pi-globe" fluid="true" styleClass="p-3 text-lg flex justify-content-start text-color"/>
             </a>
 
-            <a id="profile-button" class="w-full" *ngIf="userData.phone" [href]="'tel:' + userData.areaCode + userData.phone">
-                <i class="pi pi-phone text-xl"></i>
-                <p>Call me</p>
+            <a class="w-full no-underline" *ngIf="userData.phone" [href]="'tel:' + userData.areaCode + userData.phone">
+                <p-button label="Call me" severity="secondary" outlined="true" icon="pi pi-phone" fluid="true" styleClass="p-3 text-lg flex justify-content-start text-color"/>
             </a>
 
-            <a id="profile-button" class="w-full" *ngIf="userData.email" [href]="'mailto:' + userData.email">
-                <i class="pi pi-envelope text-xl"></i>
-                <p>Send Email</p>
+            <a class="w-full no-underline" *ngIf="userData.email" [href]="'mailto:' + userData.email">
+                <p-button label="Send Email" severity="secondary" outlined="true" icon="pi pi-envelope" fluid="true" styleClass="p-3 text-lg flex justify-content-start text-color"/>
             </a>
         </div>
 
         <p class="text-color-secondary w-full text-center">OR</p>
 
-        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" size="large"/>
+        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" size="large" styleClass="text-color"/>
     </div>
 
-    <div *ngIf="notFound" class="flex flex-column gap-3">
-        <p class="text-color-secondary">User not found</p>
+    <div *ngIf="notFound" class="flex flex-column gap-1">
+        <h4 class="font-semibold" style="font-family: Blinker !important">PAGE <span class="text-color-secondary">NOT FOUND</span></h4>
+        <h1 class="text-red-500" style="font-family: Blinker !important">ERROR</h1>
+        <p class="text-color-secondary mb-2">The page you are looking for does not exist.</p>
+        <hr class="mb-3">
+        <small class="text-color-secondary"><span class="px-2 py-1 bg-red-500 text-white mr-1">E</span> 404: NOT FOUND</small>
     </div>
 </main>
 

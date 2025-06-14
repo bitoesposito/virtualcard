@@ -148,6 +148,7 @@
 				<p-button icon="pi pi-clone text-xs" label="Share Profile" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading"/>
 				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
 			</div>
+			<p-button label="Print business card" icon="pi pi-print" severity="secondary" outlined="true" fluid="true" [disabled]="isUploading" (click)="generateBusinessCard()"/>
 			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
 		</div>
 	</form>

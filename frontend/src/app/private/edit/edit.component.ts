@@ -21,6 +21,7 @@ import { DividerModule } from 'primeng/divider';
 import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Subject } from 'rxjs';
+import { PdfService } from '../../services/pdf.service';
 
 @Component({
   selector: 'app-edit',
@@ -87,7 +88,8 @@ export class EditComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private router: Router,
     private notificationService: NotificationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private pdfService: PdfService
   ) {
     console.log('EditComponent constructor called');
   }
@@ -366,6 +368,16 @@ export class EditComponent implements OnInit, OnDestroy {
         control.enable();
       }
     });
+  }
+
+  async generateBusinessCard() {
+    try {
+      const pdfBytes = await this.pdfService.generateBusinessCard(this.userData);
+      this.pdfService.downloadPdf(pdfBytes, `${this.userData.slug}-business-card.pdf`);
+    } catch (error) {
+      console.error('Error generating business card:', error);
+      // Handle error appropriately
+    }
   }
 
   ngOnDestroy() {

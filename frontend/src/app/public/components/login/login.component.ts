@@ -95,11 +95,11 @@ export class LoginComponent implements OnInit {
     const showNotification = localStorage.getItem('show_password_reset_notification');
     const showRecoveryNotification = localStorage.getItem('show_password_recovery_notification');
     if (showNotification === 'true') {
-      this.notificationService.handleSuccess(this.translate.instant('auth.password-reset-success'));
+      this.notificationService.handleSuccess(this.translate.instant('auth.login.password-reset-success'));
       localStorage.removeItem('show_password_reset_notification');
     }
     if (showRecoveryNotification === 'true') {
-      this.notificationService.handleSuccess(this.translate.instant('auth.password-recovery-sent'));
+      this.notificationService.handleSuccess(this.translate.instant('auth.login.password-recovery-sent'));
       localStorage.removeItem('show_password_recovery_notification');
     }
   }
@@ -114,7 +114,7 @@ export class LoginComponent implements OnInit {
 
   login() {
     if (this.form.invalid) {
-      this.notificationService.handleWarning(this.translate.instant('auth.fill-required-fields'));
+      this.notificationService.handleWarning(this.translate.instant('auth.login.fill-required-fields'));
       return;
     }
 
@@ -130,7 +130,7 @@ export class LoginComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.notificationService.handleApiResponse(response, this.translate.instant('auth.login-failed'));
+          this.notificationService.handleApiResponse(response, this.translate.instant('auth.login.login-failed'));
           
           if (response.success && response.data) {
             this.authService.setToken(response.data.access_token);
@@ -143,7 +143,7 @@ export class LoginComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, this.translate.instant('auth.login-error'));
+          this.notificationService.handleError(error, this.translate.instant('auth.login.login-error'));
         }
       });
   }

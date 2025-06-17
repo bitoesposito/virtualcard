@@ -11,6 +11,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
 import { ThemeService } from '../../../services/theme.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-recover',
@@ -23,7 +24,8 @@ import { ThemeService } from '../../../services/theme.service';
     RippleModule,
     CommonModule,
     ToastModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslateModule
   ],
   providers: [
     MessageService,
@@ -44,7 +46,8 @@ export class RecoverComponent {
     private notificationService: NotificationService,
     private router: Router,
     private authService: AuthService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private translate: TranslateService
   ) {
     this.isDarkMode$ = this.themeService.isDarkMode$;
   }

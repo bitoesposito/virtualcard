@@ -15,6 +15,7 @@ import { VerifyRequest } from '../../../models/auth.models';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
 import { ThemeService } from '../../../services/theme.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-verify',
@@ -30,7 +31,8 @@ import { ThemeService } from '../../../services/theme.service';
     ToastModule,
     ReactiveFormsModule,
     ConfirmDialogModule,
-    DividerModule
+    DividerModule,
+    TranslateModule
   ],
   providers: [
     MessageService,
@@ -61,7 +63,8 @@ export class VerifyComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private confirmationService: ConfirmationService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private translate: TranslateService
   ) {
     this.isDarkMode$ = this.themeService.isDarkMode$;
   }
@@ -69,7 +72,7 @@ export class VerifyComponent implements OnInit {
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token');
     if (!this.token) {
-      this.notificationService.handleError('Invalid or missing token', 'Token Error');
+      this.notificationService.handleError(this.translate.instant('auth.verify.token-error'), 'Token Error');
       this.router.navigate(['/login']);
     }
   }
@@ -111,7 +114,7 @@ export class VerifyComponent implements OnInit {
 
   resetPassword() {
     if (this.form.invalid || !this.token) {
-      this.notificationService.handleWarning('Please fill in all required fields correctly');
+      this.notificationService.handleWarning(this.translate.instant('auth.login.fill-required-fields'));
       return;
     }
 
@@ -129,11 +132,11 @@ export class VerifyComponent implements OnInit {
         next: (response) => {
           localStorage.removeItem('access_token');
           localStorage.setItem('show_password_reset_notification', 'true');
-          this.notificationService.handleSuccess('Password has been updated successfully');
+          this.notificationService.handleSuccess(this.translate.instant('auth.verify.success'));
           this.router.navigate(['/login']);
         },
         error: (error: any) => {
-          this.notificationService.handleError(error, 'An error occurred while updating password');
+          this.notificationService.handleError(error, this.translate.instant('auth.verify.error'));
         }
       });
   }
@@ -141,18 +144,18 @@ export class VerifyComponent implements OnInit {
   confirmPasswordDialog(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Confirm that you want to proceed with verification',
-      header: 'Complete verification',
+      message: this.translate.instant('auth.verify.confirm-dialog.message'),
+      header: this.translate.instant('auth.verify.confirm-dialog.header'),
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'Cancel',
+        label: this.translate.instant('auth.verify.confirm-dialog.cancel'),
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Confirm',
+        label: this.translate.instant('auth.verify.confirm-dialog.confirm'),
       },
       accept: () => {
         this.resetPassword();

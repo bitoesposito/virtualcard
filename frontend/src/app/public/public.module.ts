@@ -11,6 +11,7 @@ import { PublicRoutingModule } from './public-routing.module';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { MessageService } from 'primeng/api';
 import { NotificationService } from '../services/notification.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [],
@@ -25,7 +26,8 @@ import { NotificationService } from '../services/notification.service';
     FormsModule,
     InputTextModule,
     ButtonModule,
-    ToastModule
+    ToastModule,
+    TranslateModule
   ],
   providers: [
     MessageService,

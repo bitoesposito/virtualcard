@@ -14,6 +14,7 @@ import { AuthService } from '../../../services/auth.service';
 import { finalize } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { ThemeService } from '../../../services/theme.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,8 @@ import { ThemeService } from '../../../services/theme.service';
     RippleModule,
     CommonModule,
     ToastModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslateModule
   ],
   providers: [
     MessageService,
@@ -53,7 +55,8 @@ export class LoginComponent implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private authService: AuthService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private translate: TranslateService
   ) {
     this.isDarkMode$ = this.themeService.isDarkMode$;
   }
@@ -85,7 +88,6 @@ export class LoginComponent implements OnInit {
         console.error('Error decoding token:', error);
         localStorage.removeItem('access_token');
       }
-    } else {
     }
   }
 
@@ -93,11 +95,11 @@ export class LoginComponent implements OnInit {
     const showNotification = localStorage.getItem('show_password_reset_notification');
     const showRecoveryNotification = localStorage.getItem('show_password_recovery_notification');
     if (showNotification === 'true') {
-      this.notificationService.handleSuccess('Password reset successfully.');
+      this.notificationService.handleSuccess(this.translate.instant('auth.password-reset-success'));
       localStorage.removeItem('show_password_reset_notification');
     }
     if (showRecoveryNotification === 'true') {
-      this.notificationService.handleSuccess('If the email is registered, you will receive a link to reset your password.');
+      this.notificationService.handleSuccess(this.translate.instant('auth.password-recovery-sent'));
       localStorage.removeItem('show_password_recovery_notification');
     }
   }
@@ -112,7 +114,7 @@ export class LoginComponent implements OnInit {
 
   login() {
     if (this.form.invalid) {
-      this.notificationService.handleWarning('Please fill in all required fields correctly');
+      this.notificationService.handleWarning(this.translate.instant('auth.fill-required-fields'));
       return;
     }
 
@@ -128,7 +130,7 @@ export class LoginComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.notificationService.handleApiResponse(response, 'Login failed');
+          this.notificationService.handleApiResponse(response, this.translate.instant('auth.login-failed'));
           
           if (response.success && response.data) {
             this.authService.setToken(response.data.access_token);
@@ -141,7 +143,7 @@ export class LoginComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, 'An error occurred during login');
+          this.notificationService.handleError(error, this.translate.instant('auth.login-error'));
         }
       });
   }

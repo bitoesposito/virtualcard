@@ -11,22 +11,22 @@
       <p-button [icon]="(isDarkMode$ | async) ? 'pi pi-moon' : 'pi pi-sun'" severity="secondary" outlined="true" (click)="toggleDarkMode()" pTooltip="Toggle dark mode" tooltipPosition="bottom"/>
     </div>
 
-    <p class="text-2xl font-semibold">Login</p>
+    <p class="text-2xl font-semibold">{{ 'auth.login' | translate }}</p>
 
     <form [formGroup]="form" (ngSubmit)="login()" class="flex flex-column gap-2">
       <div class="flex gap-1 flex-column">
-        <label for="email">Email Address</label>
-        <input formControlName="email" type="email" pInputText placeholder="Enter email address"/>
+        <label for="email">{{ 'auth.email-address' | translate }}</label>
+        <input formControlName="email" type="email" pInputText [placeholder]="'auth.email-address' | translate"/>
       </div>
 
       <div class="flex gap-1 flex-column">
-        <label for="password">Password</label>
-        <p-password formControlName="password" id="password" type="password" placeholder="Enter password" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
+        <label for="password">{{ 'auth.password' | translate }}</label>
+        <p-password formControlName="password" id="password" type="password" [placeholder]="'auth.password' | translate" styleClass="w-full" [toggleMask]="true" [inputStyle]="{ 'width': '100%' }" [feedback]="false"/>
       </div>
 
       <div class="flex gap-2 flex-column mt-2">
-        <p-button label="Login" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading"/>
-        <p-button class="text-center" label="Recover Password" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/recover']" [disabled]="loading"/>
+        <p-button [label]="'auth.login' | translate" styleClass="w-full" type="submit" [disabled]="!form.valid || loading" [loading]="loading"/>
+        <p-button class="text-center" [label]="'auth.recover-password' | translate" severity="secondary" outlined="true" styleClass="w-full" [routerLink]="['/recover']" [disabled]="loading"/>
       </div>
     </form>
 

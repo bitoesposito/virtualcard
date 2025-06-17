@@ -51,9 +51,9 @@
             </a>
         </div>
 
-        <p class="text-color-secondary w-full text-center">OR</p>
+        <p *ngIf="userData.isVcardEnabled" class="text-color-secondary w-full text-center">OR</p>
 
-        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" size="large" styleClass="text-color"/>
+        <p-button *ngIf="userData.isVcardEnabled" label="Save contact" outlined="true" severity="secondary" fluid="true" (click)="toggleSaveContactDialog()" size="large" styleClass="text-color" [disabled]="!userData.isVcardEnabled"/>
     </div>
 
     <div *ngIf="notFound" class="flex flex-column gap-1">
@@ -69,9 +69,9 @@
     <div class="flex flex-column gap-3 justify-content-center align-items-center">
         <p class="text-muted">Scan the QR code to save the contact.</p>
         <div class="flex justify-content-center border-round-md overflow-hidden bg-white">
-            <qrcode [qrdata]="qrCodeContent" [width]="160" [errorCorrectionLevel]="'M'" [elementType]="'canvas'"></qrcode>
+            <qrcode [qrdata]="qrCodeContent" [width]="160" [errorCorrectionLevel]="'M'" [elementType]="'canvas'" [allowEmptyString]="true"></qrcode>
         </div>
-        <p class="text-muted text-sm">OR</p>
-        <p-button *ngIf="userData.isVcardEnabled" label="Download contact" outlined="true" severity="secondary" icon="pi pi-download" fluid="true" (click)="vCard()" />
+        <p *ngIf="userData?.isVcardEnabled" class="text-muted text-sm">OR</p>
+        <p-button *ngIf="userData?.isVcardEnabled" label="Download contact" outlined="true" severity="secondary" icon="pi pi-download" fluid="true" (click)="vCard()" />
     </div>
 </p-dialog>

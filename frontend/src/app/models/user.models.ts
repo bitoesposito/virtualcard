@@ -30,7 +30,7 @@ export interface UserDetails extends User {
   role: UserRole;
   createdAt: string;
   is_configured: boolean;
-  profile_photo: string;
+  profile_photo?: string;
 }
 
 /**

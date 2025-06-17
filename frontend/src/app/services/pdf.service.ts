@@ -69,7 +69,7 @@ export class PdfService {
       });
 
       // Phone
-      frontPage.drawText(userData.phone || '', {
+      frontPage.drawText((userData.area_code + ' ' || '') + (userData.phone || ''), {
         x: width * 0.15,
         y: height * 0.24,
         size: 12,

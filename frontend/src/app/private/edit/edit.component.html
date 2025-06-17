@@ -25,7 +25,7 @@
 							<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
 							<div class="flex flex-column gap-0">
 								<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
-								<p class="text-xs text-color-secondary">JPG, PNG, WEBP, max size of 10MB</p>
+								<p class="text-xs text-color-secondary">Drag & drop or click to upload (max 10MB)</p>
 							</div>
 						</div>
 					</div>
@@ -35,11 +35,11 @@
 						<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
 						<div class="flex flex-column gap-0">
 							<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
-							<p class="text-xs text-color-secondary">JPG, PNG, WEBP, max size of 10MB</p>
+							<p class="text-xs text-color-secondary">Drag & drop or click to upload (max 10MB)</p>
 						</div>
 					</div>
 				</div>
-				<input #fileInput type="file" accept=".jpg,.jpeg,.png" (change)="onProfilePictureUpload($event)" style="display: none" [disabled]="isUploading" />
+				<input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.avif,.tiff,.heic,.heif,.bmp,.svg" (change)="onProfilePictureUpload($event)" style="display: none" />
 			</div>
 		</div>
 
@@ -89,21 +89,21 @@
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="slug">Profile Link</label>
+			<label for="slug">Username</label>
 			<input id="slug" type="text" pInputText formControlName="slug" 
 				[class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" 
-				placeholder="Enter your profile link" [disabled]="isUploading">
+				placeholder="Enter your profile username">
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['required'] && form.get('slug')?.touched">
-				Profile link is required
+				Username is required
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['pattern'] && form.get('slug')?.touched">
-				The profile link must contain only lowercase letters, numbers and hyphens (3-50 characters)
+				The username must contain only lowercase letters, numbers and hyphens (3-20 characters)
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['minlength'] && form.get('slug')?.touched">
-				The profile link must be at least 3 characters long
+				The username must be at least 3 characters long
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['maxlength'] && form.get('slug')?.touched">
-				The profile link cannot exceed 50 characters
+				The username cannot exceed 20 characters
 			</small>
 			<small class="text-red-500" *ngIf="slugError">
 				{{ slugError }}
@@ -113,42 +113,42 @@
 		<p-divider />
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" [disabled]="isUploading" />
+			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="websiteSelect" class="ml-2">
 					Enable website button
-					<p class="text-xs text-color-secondary">Show the website button on your public profile</p>
+					<p class="text-xs text-color-secondary">Show the button for your website</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" [disabled]="isUploading" />
+			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="whatsappSelect" class="ml-2">
 					Enable WhatsApp button
-					<p class="text-xs text-color-secondary">Show the WhatsApp button on your public profile to send a message to the associated number</p>
+					<p class="text-xs text-color-secondary">Show the button to send a message on WhatsApp</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-1">
-			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" [disabled]="isUploading" />
+			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="vCardSelect" class="ml-2">
-					Enable vCard button
-					<p class="text-xs text-color-secondary">Show the vCard button on your public profile to save your contact details on mobile devices</p>
+					Enable contact button
+					<p class="text-xs text-color-secondary">Show the button to save your contact details</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-2 flex-column mt-2">
-			<p-button label="Update Profile" fluid="true" type="submit" [disabled]="!form.valid || isUploading" />
+			<p-button label="Update Profile" fluid="true" outlined="true" type="submit" [disabled]="!form.valid || isUploading" styleClass="mb-3"/>
+			<p-button icon="pi pi-user text-sm" label="Go to Profile" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
 			<div class="flex gap-2 w-full">
-				<p-button icon="pi pi-clone text-xs" label="Share Profile" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading"/>
-				<p-button icon="pi pi-user text-sm" label="Go to Profile" severity="secondary" outlined="true" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
+				<p-button icon="pi pi-clone text-xs" label="Share Profile" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading || !isProfileConfigured()"/>
+				<p-button label="Print business card" icon="pi pi-print" severity="secondary" outlined="true" fluid="true" [disabled]="isUploading" (click)="generateBusinessCard()" [ngStyle]="{width: '100%'}" />
 			</div>
-			<p-button label="Print business card" icon="pi pi-print" severity="secondary" outlined="true" fluid="true" [disabled]="isUploading" (click)="generateBusinessCard()"/>
 			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
 		</div>
 	</form>

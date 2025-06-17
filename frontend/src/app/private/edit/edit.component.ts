@@ -76,9 +76,9 @@ export class EditComponent implements OnInit, OnDestroy {
     isVcardEnabled: new FormControl({ value: false, disabled: false }),
     slug: new FormControl({ value: '', disabled: false }, [
       Validators.required,
-      Validators.pattern(/^[a-z0-9-]{3,50}$/),
+      Validators.pattern(/^[a-z0-9-]{3,20}$/),
       Validators.minLength(3),
-      Validators.maxLength(50)
+      Validators.maxLength(20)
     ])
   });
   private destroy$ = new Subject<void>();
@@ -90,12 +90,9 @@ export class EditComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private route: ActivatedRoute,
     private pdfService: PdfService
-  ) {
-    console.log('EditComponent constructor called');
-  }
+  ) {}
 
   ngOnInit(): void {
-    console.log('EditComponent ngOnInit called');
     this.getUserData();
     this.setupSlugValidation();
   }
@@ -199,20 +196,15 @@ export class EditComponent implements OnInit, OnDestroy {
   }
 
   getUserData() {
-    console.log('getUserData started');
     const token = localStorage.getItem('access_token');
-    console.log('Token from localStorage:', token);
     if (!token) {
-      console.log('No token found');
       this.notificationService.handleError(null, 'Session expired');
       this.disconnect();
       return;
     }
 
     try {
-      console.log('Attempting to decode token');
       const decoded: any = jwtDecode(token);
-      console.log('Decoded token:', decoded);
       if (!decoded.sub) {
         this.notificationService.handleError(null, 'Invalid token');
         return;
@@ -221,11 +213,9 @@ export class EditComponent implements OnInit, OnDestroy {
       // Get UUID from route params or use the one from token
       this.route.params.subscribe(params => {
         const uuid = params['uuid'] || decoded.sub;
-        console.log('Using UUID:', uuid);
         
         this.userService.getUser(uuid).subscribe({
           next: (response: ApiResponse<UserDetails>) => {
-            console.log('API Response:', response);
             if (response.success) {
               // Initialize with empty values if no data exists
               this.userData = response.data || {};
@@ -310,10 +300,22 @@ export class EditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Check file type - only allow jpg, jpeg, and png
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // Check file type
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'image/avif',
+      'image/tiff',
+      'image/heic',
+      'image/heif',
+      'image/bmp',
+      'image/svg+xml'
+    ];
     if (!allowedTypes.includes(file.type)) {
-      this.notificationService.handleWarning('Please select a JPG or PNG image file');
+      this.notificationService.handleWarning('Please select a valid image file (JPG, PNG, WEBP, GIF, AVIF, TIFF, HEIC, BMP, or SVG)');
       return;
     }
 
@@ -330,7 +332,7 @@ export class EditComponent implements OnInit, OnDestroy {
     Object.keys(this.form.controls).forEach(key => {
       const control = this.form.get(key);
       if (control) {
-        control.disable({ emitEvent: false });
+        control.disable();
       }
     });
 
@@ -351,7 +353,6 @@ export class EditComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error uploading profile picture:', error);
           this.notificationService.handleError(error, 'Error during upload');
           this.resetUploadState();
         }

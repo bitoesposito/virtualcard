@@ -5,22 +5,22 @@
 ### User (auth_users table)
 | Field | Description |
 |-|-:|
-| uuid: string | Primary key, auto-generated |
-| email: string | Unique |
+| uuid: string | Primary key, auto-generated UUID |
+| email: string | Unique, required |
 | password: string | Hashed, nullable |
-| role: UserRole | enum, default UserRole.USER |
+| role: UserRole | enum ('admin', 'user'), default 'user' |
 | is_configured: boolean | default false |
 | profile_uuid: string | Foreign key to user_profiles.uuid, nullable |
-| reset_token: string | nullable |
+| reset_token: string | nullable, max length 511 |
 | reset_token_expiry: Date | nullable |
-| created_at: Date | auto-generated |
-| updated_at: Date | auto-generated |
+| created_at: Date | auto-generated timestamp |
+| updated_at: Date | auto-generated timestamp, updated via trigger |
 
 ### UserProfile (user_profiles table)
 | Field | Description |
 |-|-:|
-| uuid: string | Primary key, auto-generated |
-| email: string | Unique |
+| uuid: string | Primary key, auto-generated UUID |
+| email: string | Unique, required |
 | name: string | nullable, 2-50 characters |
 | surname: string | nullable, 2-50 characters |
 | area_code: string | nullable, 2-10 characters |
@@ -29,20 +29,25 @@
 | is_whatsapp_enabled: boolean | default false |
 | is_website_enabled: boolean | default false |
 | is_vcard_enabled: boolean | default false |
-| slug: string | unique, nullable, 3-50 characters, format [a-z0-9-] |
-| profile_photo: string | nullable |
-| created_at: Date | auto-generated |
-| updated_at: Date | auto-generated |
+| slug: string | unique, nullable, format [a-z0-9-] |
+| profile_photo: string | nullable, max length 1024 |
+| created_at: Date | auto-generated timestamp |
+| updated_at: Date | auto-generated timestamp, updated via trigger |
 
 ## Relationships
 - One-to-One relationship between User and UserProfile
 - User.profile_uuid references UserProfile.uuid
+- When a User is deleted, the profile_uuid is set to NULL (ON DELETE SET NULL)
+
+## Database Triggers
+- `update_updated_at_column()`: Function that updates the updated_at timestamp
+- `update_auth_users_updated_at`: Trigger on auth_users table
+- `update_user_profiles_updated_at`: Trigger on user_profiles table
 
 ## DTO Interfaces
 
 ### UserResponseDto
 #### Description
-
 Used in: GET /users/:slug, GET /users/by-id/:uuid, GET /users/list to return public user data.
 
 ```typescript
@@ -67,7 +72,6 @@ export class UserResponseDto {
 
 ### CreateUserDto
 #### Description
-
 Used in: POST /users/create to create new users with USER role.
 
 ```typescript
@@ -80,7 +84,6 @@ export class CreateUserDto {
 
 ### EditUserDto
 #### Description
-
 Used in: PUT /users/edit to modify user profile, requires JWT authorization of the user modifying their own profile or an admin.
 
 ```typescript
@@ -137,7 +140,6 @@ export class EditUserDto {
 
 ### LoginDto
 #### Description
-
 Used in: POST /auth/login for authentication, contains user credentials.
 
 ```typescript
@@ -163,7 +165,6 @@ export class LoginDto {
 
 ### ForgotPasswordDto
 #### Description
-
 Used in: POST /auth/recover to send an email containing a temporary token for password recovery.
 
 ```typescript
@@ -176,7 +177,6 @@ export class ForgotPasswordDto {
 
 ### ResetPasswordDto
 #### Description
-
 Used in: POST /auth/verify to verify a recovery token and update the password.
 
 ```typescript
@@ -201,7 +201,6 @@ export class ResetPasswordDto {
 
 ### DeleteUserDto
 #### Description
-
 Used in: DELETE /users/delete to delete a user, can only be executed by the user themselves or an admin.
 
 ```typescript
@@ -211,3 +210,10 @@ export class DeleteUserDto {
   email: string;
 }
 ```
+
+## Database Configuration
+- Type: PostgreSQL
+- Auto-load entities: true
+- Synchronize: false (disabled for safety)
+- SSL: Enabled in production, disabled in development
+- Triggers: Automatic timestamp updates for created_at and updated_at fields

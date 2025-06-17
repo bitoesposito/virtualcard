@@ -54,14 +54,14 @@ export class MailService {
 
             const html = `
                 <body
-                    style="font-family: Arial, sans-serif;color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    style="font-family: Arial, sans-serif;color: #f8fafc; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h1 style="color: #2c3e50;">${subject}</h1>
                     <p>For ${type === 'verification' ? 'verify your account' : 'reset your password'}, click the button below:</p>
                     <p style="margin: 20px 0;">
                         <a href="${url}" style="background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">${type === 'verification' ? 'Verify account' : 'Reset password'}</a>
                     </p>
                     <hr>
-                    <p style="color: #7f8c8d; font-size: 0.9em;">If you didn't request this, you can safely ignore this email.</p>
+                    <p style="color: #94a3b8; font-size: 0.9em;">If you didn't request this, you can safely ignore this email.</p>
                 </body>
             `;
 

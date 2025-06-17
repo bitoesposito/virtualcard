@@ -12,7 +12,9 @@ src/
 └── app/
     ├── services/
     │   ├── auth.service.ts
-    │   └── user.service.ts
+    │   ├── user.service.ts
+    │   ├── notification.service.ts
+    │   └── theme.service.ts
     ├── guards/
     │   ├── auth.guard.ts
     │   └── role.guard.ts
@@ -20,7 +22,8 @@ src/
     │   └── auth.interceptor.ts
     ├── models/
     │   ├── user.model.ts
-    │   └── auth.model.ts
+    │   ├── auth.model.ts
+    │   └── api.model.ts
     ├── private/
     │   ├── dashboard/
     │   │   └── dashboard.component.ts
@@ -57,6 +60,9 @@ src/
 | Edit own profile          | ✅            | ✅    |
 | Edit other profiles       | ❌            | ✅    |
 | Password recovery         | ✅            | ✅    |
+| Dark mode toggle          | ✅            | ✅    |
+| Profile photo upload      | ✅            | ✅    |
+| Business card generation  | ✅            | ✅    |
 
 ---
 
@@ -69,9 +75,9 @@ src/
 - `/u/:slug` → UserProfileComponent (public access)
 
 ### Private Routes (protected by authGuard and roleGuard)
-- `/private/dashboard` → DashboardComponent
-- `/private/edit/:uuid` → EditComponent
-- `/private/:uuid` → UserProfileComponent
+- `/private/dashboard` → DashboardComponent (admin only)
+- `/private/edit/:uuid` → EditComponent (own profile or admin)
+- `/private/:uuid` → UserProfileComponent (authenticated view)
 
 ### Guards
 - `authGuard`: Ensures user is authenticated
@@ -85,20 +91,53 @@ src/
 ## 4. Component Details
 
 ### Public Components
-- **LoginComponent**: Handles user authentication
+- **LoginComponent**: Handles user authentication with email/password
 - **RecoverComponent**: Handles password recovery requests
 - **VerifyComponent**: Handles password reset verification
-- **UserProfileComponent**: Displays public user profile
+- **UserProfileComponent**: Displays public user profile with QR code
 
 ### Private Components
-- **DashboardComponent**: Main dashboard for authenticated users
-- **EditComponent**: Profile editing interface
+- **DashboardComponent**: Admin dashboard for user management
+- **EditComponent**: Profile editing interface with photo upload
 - **UserProfileComponent**: Detailed user profile view (private version)
 
 ### Services
 - **AuthService**: Handles authentication operations
 - **UserService**: Manages user-related operations
+- **NotificationService**: Handles toast notifications
+- **ThemeService**: Manages dark/light mode
 
 ### Models
 - **UserModel**: Defines user data structure
 - **AuthModel**: Defines authentication data structure
+- **ApiModel**: Defines API response structure
+
+## 5. Features
+
+### Authentication
+- JWT-based authentication
+- Role-based access control
+- Password recovery flow
+- Session management
+
+### User Profile
+- Profile photo upload
+- Contact information management
+- Social media links
+- Business card generation
+- QR code generation
+
+### UI/UX
+- Responsive design
+- Dark/Light mode toggle
+- Toast notifications
+- Loading indicators
+- Form validation
+- Error handling
+
+### Security
+- Route guards
+- Token management
+- Input validation
+- XSS protection
+- CSRF protection

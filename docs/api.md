@@ -15,6 +15,7 @@ PUT     users/edit              Updates user profile (Authenticated user)
 DELETE  users/delete            Deletes user and associated profile (Authenticated user)
 GET     users/:slug             Retrieves public user profile by slug (Public)
 GET     users/check-slug/:slug  Verifies slug availability (Authenticated user)
+POST    users/upload-photo      Uploads profile photo (Authenticated user)
 
 # API Response Structure
 
@@ -58,7 +59,13 @@ All API responses follow this structure:
 
 ## Slug Requirements
 - Can only contain lowercase letters, numbers, and hyphens
+- Must be unique
 - Optional
+
+## Profile Photo Requirements
+- Maximum file size: 5MB
+- Allowed formats: JPG, JPEG, PNG
+- Will be automatically optimized and resized
 
 # Endpoint Details
 
@@ -459,7 +466,8 @@ Retrieves public user profile by slug (Public).
     "is_whatsapp_enabled": boolean,
     "is_website_enabled": boolean,
     "is_vcard_enabled": boolean,
-    "slug": "string"
+    "slug": "string",
+    "profile_photo": "string"
   }
 }
 ```
@@ -495,6 +503,64 @@ Verifies slug availability (Authenticated user).
 {
   "success": false,
   "message": "Invalid slug format",
+  "data": null
+}
+```
+
+## users/upload-photo
+### Description
+Uploads a profile photo for the authenticated user.
+
+### Request Body
+```
+FormData:
+- photo: File (Required, max 5MB, JPG/JPEG/PNG only)
+```
+
+### Responses
+
+200: Success
+```json
+{
+  "success": true,
+  "message": "Profile photo uploaded successfully",
+  "data": {
+    "uuid": "string",
+    "email": "string",
+    "name": "string",
+    "surname": "string",
+    "area_code": "string",
+    "phone": "string",
+    "website": "string",
+    "is_whatsapp_enabled": boolean,
+    "is_website_enabled": boolean,
+    "is_vcard_enabled": boolean,
+    "slug": "string",
+    "profile_photo": "string",
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+```
+
+400: Validation Error
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "data": null
+  // Possible messages:
+  // - "Photo is required"
+  // - "File size must not exceed 5MB"
+  // - "Only JPG, JPEG, and PNG files are allowed"
+}
+```
+
+403: Forbidden
+```json
+{
+  "success": false,
+  "message": "Authentication required",
   "data": null
 }
 ```

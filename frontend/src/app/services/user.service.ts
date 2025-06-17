@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models/api.models';
 import { User, UserDetails, UserEmail } from '../models/user.models';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -18,20 +19,52 @@ export class UserService {
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
+  private ensureHttps(url: string | undefined): string | undefined {
+    if (!url) return url;
+    if (url.startsWith('http://')) {
+      return url.replace('http://', 'https://');
+    }
+    return url;
+  }
+
   getUsers(): Observable<ApiResponse<UserDetails[]>> {
     return this.http.get<ApiResponse<UserDetails[]>>(`${this.API_URL}/users/list`, {
       headers: this.getHeaders()
-    });
+    }).pipe(
+      map(response => {
+        if (response.data) {
+          response.data = response.data.map(user => ({
+            ...user,
+            profile_photo: this.ensureHttps(user.profile_photo)
+          }));
+        }
+        return response;
+      })
+    );
   }
 
   getPublicUser(slug: string): Observable<ApiResponse<User>> {
-    return this.http.get<ApiResponse<User>>(`${this.API_URL}/users/${slug}`)
+    return this.http.get<ApiResponse<User>>(`${this.API_URL}/users/${slug}`).pipe(
+      map(response => {
+        if (response.data) {
+          response.data.profilePhoto = this.ensureHttps(response.data.profilePhoto);
+        }
+        return response;
+      })
+    );
   }
 
   getUser(uuid: string): Observable<ApiResponse<UserDetails>> {
     return this.http.get<ApiResponse<UserDetails>>(`${this.API_URL}/users/by-id/${uuid}`, {
       headers: this.getHeaders()
-    });
+    }).pipe(
+      map(response => {
+        if (response.data) {
+          response.data.profile_photo = this.ensureHttps(response.data.profile_photo);
+        }
+        return response;
+      })
+    );
   }
 
   deleteUser(email: string): Observable<ApiResponse<null>> {

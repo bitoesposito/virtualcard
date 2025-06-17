@@ -132,6 +132,8 @@ export class UserProfileComponent implements OnInit {
     this.saveContactDialog = !this.saveContactDialog;
     if (this.saveContactDialog && this.userData) {
       this.qrCodeContent = this.generateVCardContent();
+    } else {
+      this.qrCodeContent = '';
     }
   }
 

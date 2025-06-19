@@ -11,7 +11,7 @@ import { SelectModule } from 'primeng/select';
 import { ImageModule } from 'primeng/image';
 import { NotificationService } from '../../services/notification.service';
 import { UserService } from '../../services/user.service';
-import * as languages from '../../assets/languages.json';
+import * as languages from '../../../assets/languages.json'
 import { Language, UserDetails } from '../../models/user.models';
 import { ApiResponse } from '../../models/api.models';
 import { jwtDecode } from 'jwt-decode';
@@ -22,6 +22,7 @@ import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Subject } from 'rxjs';
 import { PdfService } from '../../services/pdf.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-edit',
@@ -40,7 +41,8 @@ import { PdfService } from '../../services/pdf.service';
     DividerModule,
     FileUploadModule,
     ImageModule,
-    ProgressBarModule
+    ProgressBarModule,
+    TranslateModule
   ],
   providers: [
     NotificationService,
@@ -89,7 +91,8 @@ export class EditComponent implements OnInit, OnDestroy {
     private router: Router,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -124,7 +127,7 @@ export class EditComponent implements OnInit, OnDestroy {
     this.userService.checkSlugAvailability(slug).subscribe({
       next: (response: ApiResponse<{ available: boolean }>) => {
         if (!response.data?.available) {
-          this.slugError = 'This profile URL is already taken. Please choose another one.';
+          this.slugError = this.translate.instant('edit.username-taken');
           this.form.get('slug')?.setErrors({ 'slugTaken': true });
         } else {
           this.slugError = null;
@@ -140,7 +143,7 @@ export class EditComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: Error) => {
-        this.notificationService.handleError(error, 'Error checking slug availability');
+        this.notificationService.handleError(error, this.translate.instant('edit.errors.error-checking-slug'));
         this.slugError = null;
       }
     });
@@ -183,22 +186,22 @@ export class EditComponent implements OnInit, OnDestroy {
 
       this.userService.updateProfile(profileData).subscribe({
         next: (response: any) => {
-          this.notificationService.handleSuccess('Profile updated successfully');
+          this.notificationService.handleSuccess(this.translate.instant('edit.success.profile-updated'));
           this.getUserData();
         },
         error: (error: any) => {
-          this.notificationService.handleError(error, 'Error updating profile');
+          this.notificationService.handleError(error, this.translate.instant('edit.errors.error-updating-profile'));
         }
       });
     } else {
-      this.notificationService.handleWarning('Fill in all required fields');
+      this.notificationService.handleWarning(this.translate.instant('edit.errors.fill-required-fields'));
     }
   }
 
   getUserData() {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      this.notificationService.handleError(null, 'Session expired');
+      this.notificationService.handleError(null, this.translate.instant('edit.errors.session-expired'));
       this.disconnect();
       return;
     }
@@ -206,7 +209,7 @@ export class EditComponent implements OnInit, OnDestroy {
     try {
       const decoded: any = jwtDecode(token);
       if (!decoded.sub) {
-        this.notificationService.handleError(null, 'Invalid token');
+        this.notificationService.handleError(null, this.translate.instant('edit.errors.invalid-token'));
         return;
       }
 
@@ -252,7 +255,7 @@ export class EditComponent implements OnInit, OnDestroy {
             if (error.status === 401) {
               this.disconnect();
             } else {
-              this.notificationService.handleError(error, 'Error retrieving profile');
+              this.notificationService.handleError(error, this.translate.instant('edit.errors.error-retrieving-profile'));
             }
           }
         });
@@ -263,7 +266,7 @@ export class EditComponent implements OnInit, OnDestroy {
       }
 
     } catch (error) {
-      this.notificationService.handleError(error, 'Error decoding token');
+      this.notificationService.handleError(error, this.translate.instant('edit.errors.error-decoding-token'));
     }
   }
 
@@ -274,7 +277,7 @@ export class EditComponent implements OnInit, OnDestroy {
   shareProfile() {
     const url = `${window.location.origin}/u/${this.userData.slug}`;
     navigator.clipboard.writeText(url);
-    this.notificationService.handleSuccess('Profile link copied to clipboard');
+    this.notificationService.handleSuccess(this.translate.instant('edit.success.profile-link-copied'));
   }
 
   isProfileConfigured(): boolean {
@@ -296,7 +299,7 @@ export class EditComponent implements OnInit, OnDestroy {
   onProfilePictureUpload(event: any) {
     const file = event.target.files[0];
     if (!file || !this.userData?.email) {
-      this.notificationService.handleWarning('File or email not available');
+      this.notificationService.handleWarning(this.translate.instant('edit.errors.file-or-email-not-available'));
       return;
     }
 
@@ -315,13 +318,13 @@ export class EditComponent implements OnInit, OnDestroy {
       'image/svg+xml'
     ];
     if (!allowedTypes.includes(file.type)) {
-      this.notificationService.handleWarning('Please select a valid image file (JPG, PNG, WEBP, GIF, AVIF, TIFF, HEIC, BMP, or SVG)');
+      this.notificationService.handleWarning(this.translate.instant('edit.errors.invalid-image-file'));
       return;
     }
 
     // Check file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      this.notificationService.handleWarning('Image size cannot exceed 5MB');
+      this.notificationService.handleWarning(this.translate.instant('edit.errors.image-size-exceeded'));
       return;
     }
 
@@ -341,19 +344,19 @@ export class EditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: ApiResponse<UserDetails>) => {
           if (response.success && response.data) {
-            this.notificationService.handleSuccess('Profile picture updated successfully!');
+            this.notificationService.handleSuccess(this.translate.instant('edit.success.profile-picture-updated'));
             // Update the userData with the new profile photo URL
             if (this.userData) {
               this.userData.profile_photo = response.data.profile_photo;
             }
             this.resetUploadState();
           } else {
-            this.notificationService.handleError(null, 'Error during upload');
+            this.notificationService.handleError(null, this.translate.instant('edit.errors.error-during-upload'));
             this.resetUploadState();
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, 'Error during upload');
+          this.notificationService.handleError(error, this.translate.instant('edit.errors.error-during-upload'));
           this.resetUploadState();
         }
       });

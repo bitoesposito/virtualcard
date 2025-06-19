@@ -2,16 +2,16 @@
 
 <main class="max-w-26rem w-full px-3 m-auto mt-5">
 	<form [formGroup]="form" (ngSubmit)="editProfile()" class="flex flex-column gap-2 pb-4">
-		<p-button *ngIf="isAdmin" label="Go to dashboard" [routerLink]="'private/dashboard'" icon="pi pi-arrow-left" severity="secondary" outlined="true" class="mb-2"/>
-		<p class="text-2xl font-semibold">Edit Profile</p>
+		<p-button *ngIf="isAdmin" [label]="'edit.go-to-dashboard' | translate" [routerLink]="'private/dashboard'" icon="pi pi-arrow-left" severity="secondary" outlined="true" class="mb-2"/>
+		<p class="text-2xl font-semibold">{{ 'edit.edit-profile' | translate }}</p>
 
 		<div *ngIf="!userData?.slug" class="p-3 border-round surface-100 mb-3">
-			<p class="text-lg font-medium mb-2">Welcome to virtualcard!</p>
-			<p class="text-sm text-color-secondary">To make your profile public, complete the setup by entering your details and a custom link for your profile.</p>
+			<p class="text-lg font-medium mb-2">{{ 'edit.welcome.title' | translate }}</p>
+			<p class="text-sm text-color-secondary">{{ 'edit.welcome.description' | translate }}</p>
 		</div>
 
 		<div class="flex gap-1 flex-column mb-2">
-			<label for="profilePicture">Profile Picture</label>
+			<label for="profilePicture">{{ 'edit.profile-picture' | translate }}</label>
 			<div class="relative">
 				<div class="border-round-md cursor-pointer" (click)="triggerFileInput()">
 					<div *ngIf="userData.profile_photo">
@@ -24,8 +24,8 @@
 							</div>
 							<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
 							<div class="flex flex-column gap-0">
-								<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
-								<p class="text-xs text-color-secondary">Drag & drop or click to upload (max 10MB)</p>
+								<p class="text-color-secondary">{{ isUploading ? ('edit.uploading-image' | translate) : ('edit.upload-profile-picture' | translate) }}</p>
+								<p class="text-xs text-color-secondary">{{ 'edit.drag-drop-info' | translate }}</p>
 							</div>
 						</div>
 					</div>
@@ -34,8 +34,8 @@
 						<i *ngIf="!isUploading" class="pi pi-user text-2xl text-white text-color-secondary mr-2"></i>
 						<i *ngIf="isUploading" class="pi pi-spin pi-spinner text-2xl text-white text-color-secondary mr-2 flex align-items-center justify-content-center"></i>
 						<div class="flex flex-column gap-0">
-							<p class="text-color-secondary">{{ isUploading ? 'Uploading image...' : 'Upload a profile picture' }}</p>
-							<p class="text-xs text-color-secondary">Drag & drop or click to upload (max 10MB)</p>
+							<p class="text-color-secondary">{{ isUploading ? ('edit.uploading-image' | translate) : ('edit.upload-profile-picture' | translate) }}</p>
+							<p class="text-xs text-color-secondary">{{ 'edit.drag-drop-info' | translate }}</p>
 						</div>
 					</div>
 				</div>
@@ -44,21 +44,21 @@
 		</div>
 
 		<div class="upload-section" *ngIf="isUploading">
-			<small class="text-muted">Uploading profile picture...</small>
+			<small class="text-muted">{{ 'edit.uploading-profile-picture' | translate }}</small>
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="name">Name</label>
-			<input formControlName="name" type="text" pInputText placeholder="Enter your name" />
+			<label for="name">{{ 'edit.name' | translate }}</label>
+			<input formControlName="name" type="text" pInputText [placeholder]="'edit.name-placeholder' | translate" />
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="surname">Surname</label>
-			<input formControlName="surname" type="text" pInputText placeholder="Enter your surname" />
+			<label for="surname">{{ 'edit.surname' | translate }}</label>
+			<input formControlName="surname" type="text" pInputText [placeholder]="'edit.surname-placeholder' | translate" />
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="phone">Phone Number</label>
+			<label for="phone">{{ 'edit.phone-number' | translate }}</label>
 			<div class="flex gap-1">
 				<div class="flex gap-1 flex-column">
 					<p-select formControlName="areaCode" [options]="area_code" optionLabel="label" optionValue="value"
@@ -76,34 +76,34 @@
 					</p-select>
 				</div>
 				<input fluid="true" formControlName="phone" type="tel" pInputText
-					placeholder="Enter phone number" />
+					[placeholder]="'edit.phone-placeholder' | translate" />
 			</div>
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="website">Website</label>
-			<input id="website" type="text" pInputText formControlName="website" [class.ng-invalid]="form.get('website')?.invalid && form.get('website')?.touched" placeholder="Enter your website">
+			<label for="website">{{ 'edit.website' | translate }}</label>
+			<input id="website" type="text" pInputText formControlName="website" [class.ng-invalid]="form.get('website')?.invalid && form.get('website')?.touched" [placeholder]="'edit.website-placeholder' | translate">
 			<small class="text-red-500" *ngIf="form.get('website')?.invalid && form.get('website')?.touched">
-				Please enter a valid URL
+				{{ 'edit.website-error' | translate }}
 			</small>
 		</div>
 
 		<div class="flex gap-1 flex-column">
-			<label for="slug">Username</label>
+			<label for="slug">{{ 'edit.username' | translate }}</label>
 			<input id="slug" type="text" pInputText formControlName="slug" 
 				[class.ng-invalid]="form.get('slug')?.invalid && form.get('slug')?.touched" 
-				placeholder="Enter your profile username">
+				[placeholder]="'edit.username-placeholder' | translate">
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['required'] && form.get('slug')?.touched">
-				Username is required
+				{{ 'edit.username-required' | translate }}
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['pattern'] && form.get('slug')?.touched">
-				The username must contain only lowercase letters, numbers and hyphens (3-20 characters)
+				{{ 'edit.username-pattern-error' | translate }}
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['minlength'] && form.get('slug')?.touched">
-				The username must be at least 3 characters long
+				{{ 'edit.username-min-length' | translate }}
 			</small>
 			<small class="text-red-500" *ngIf="form.get('slug')?.errors?.['maxlength'] && form.get('slug')?.touched">
-				The username cannot exceed 20 characters
+				{{ 'edit.username-max-length' | translate }}
 			</small>
 			<small class="text-red-500" *ngIf="slugError">
 				{{ slugError }}
@@ -116,8 +116,8 @@
 			<p-checkbox inputId="websiteSelect" formControlName="isWebsiteEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="websiteSelect" class="ml-2">
-					Enable website button
-					<p class="text-xs text-color-secondary">Show the button for your website</p>
+					{{ 'edit.enable-website' | translate }}
+					<p class="text-xs text-color-secondary">{{ 'edit.enable-website-desc' | translate }}</p>
 				</label>
 			</div>
 		</div>
@@ -126,8 +126,8 @@
 			<p-checkbox inputId="whatsappSelect" formControlName="isWhatsappEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="whatsappSelect" class="ml-2">
-					Enable WhatsApp button
-					<p class="text-xs text-color-secondary">Show the button to send a message on WhatsApp</p>
+					{{ 'edit.enable-whatsapp' | translate }}
+					<p class="text-xs text-color-secondary">{{ 'edit.enable-whatsapp-desc' | translate }}</p>
 				</label>
 			</div>
 		</div>
@@ -136,20 +136,20 @@
 			<p-checkbox inputId="vCardSelect" formControlName="isVcardEnabled" [binary]="true" />
 			<div class="flex flex-column">
 				<label for="vCardSelect" class="ml-2">
-					Enable contact button
-					<p class="text-xs text-color-secondary">Show the button to save your contact details</p>
+					{{ 'edit.enable-contact' | translate }}
+					<p class="text-xs text-color-secondary">{{ 'edit.enable-contact-desc' | translate }}</p>
 				</label>
 			</div>
 		</div>
 
 		<div class="flex gap-2 flex-column mt-2">
-			<p-button label="Update Profile" fluid="true" outlined="true" type="submit" [disabled]="!form.valid || isUploading" styleClass="mb-3"/>
-			<p-button icon="pi pi-user text-sm" label="Go to Profile" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
+			<p-button [label]="'edit.update-profile' | translate" fluid="true" outlined="true" type="submit" [disabled]="!form.valid || isUploading" styleClass="mb-3"/>
+			<p-button icon="pi pi-user text-sm" [label]="'edit.go-to-profile' | translate" [routerLink]="'/u/' + userData?.slug" fluid="true" [ngStyle]="{width: '100%'}" [disabled]="!userData?.slug || !isProfileConfigured() || isUploading"/>
 			<div class="flex gap-2 w-full">
-				<p-button icon="pi pi-clone text-xs" label="Share Profile" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading || !isProfileConfigured()"/>
-				<p-button label="Print business card" icon="pi pi-print" severity="secondary" outlined="true" fluid="true" [disabled]="isUploading" (click)="generateBusinessCard()" [ngStyle]="{width: '100%'}" />
+				<p-button icon="pi pi-clone text-xs" [label]="'edit.share-profile' | translate" severity="secondary" outlined="true" fluid="true" [ngStyle]="{width: '100%'}"  class="white-space-nowrap" (click)="shareProfile()" [disabled]="isUploading || !isProfileConfigured()"/>
+				<p-button [label]="'edit.print-business-card' | translate" icon="pi pi-print" severity="secondary" outlined="true" fluid="true" [disabled]="isUploading" (click)="generateBusinessCard()" [ngStyle]="{width: '100%'}" />
 			</div>
-			<p-button *ngIf="!isAdmin" label="Disconnect" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
+			<p-button *ngIf="!isAdmin" [label]="'edit.disconnect' | translate" icon="pi pi-sign-out text-xs" severity="danger" outlined="true" fluid="true" (click)="disconnect()" [disabled]="isUploading" />
 		</div>
 	</form>
 </main>

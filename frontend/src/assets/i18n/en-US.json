@@ -44,5 +44,129 @@
       "error": "An error occurred while updating password",
       "token-error": "Invalid or missing token"
     }
+  },
+  "user-profile": {
+    "dashboard": "Dashboard",
+    "message-whatsapp": "Message on WhatsApp",
+    "visit-website": "Visit my website",
+    "call-me": "Call me",
+    "send-email": "Send Email",
+    "or": "OR",
+    "save-contact": "Save contact",
+    "page-not-found": "PAGE NOT FOUND",
+    "error": "ERROR",
+    "page-not-found-message": "The page you are looking for does not exist.",
+    "error-404": "404: NOT FOUND",
+    "save-contact-dialog": {
+      "header": "Save contact",
+      "scan-qr-message": "Scan the QR code to save the contact.",
+      "or": "OR",
+      "download-contact": "Download contact"
+    },
+    "errors": {
+      "user-not-found": "User not found"
+    }
+  },
+  "edit": {
+    "go-to-dashboard": "Go to dashboard",
+    "edit-profile": "Edit Profile",
+    "welcome": {
+      "title": "Welcome to virtualcard!",
+      "description": "To make your profile public, complete the setup by entering your details and a custom link for your profile."
+    },
+    "profile-picture": "Profile Picture",
+    "upload-profile-picture": "Upload a profile picture",
+    "uploading-image": "Uploading image...",
+    "drag-drop-info": "Drag & drop or click to upload (max 10MB)",
+    "uploading-profile-picture": "Uploading profile picture...",
+    "name": "Name",
+    "name-placeholder": "Enter your name",
+    "surname": "Surname",
+    "surname-placeholder": "Enter your surname",
+    "phone-number": "Phone Number",
+    "phone-placeholder": "Enter phone number",
+    "website": "Website",
+    "website-placeholder": "Enter your website",
+    "website-error": "Please enter a valid URL",
+    "username": "Username",
+    "username-placeholder": "Enter your profile username",
+    "username-required": "Username is required",
+    "username-pattern-error": "The username must contain only lowercase letters, numbers and hyphens (3-20 characters)",
+    "username-min-length": "The username must be at least 3 characters long",
+    "username-max-length": "The username cannot exceed 20 characters",
+    "username-taken": "This profile URL is already taken. Please choose another one.",
+    "enable-website": "Enable website button",
+    "enable-website-desc": "Show the button for your website",
+    "enable-whatsapp": "Enable WhatsApp button",
+    "enable-whatsapp-desc": "Show the button to send a message on WhatsApp",
+    "enable-contact": "Enable contact button",
+    "enable-contact-desc": "Show the button to save your contact details",
+    "update-profile": "Update Profile",
+    "go-to-profile": "Go to Profile",
+    "share-profile": "Share Profile",
+    "print-business-card": "Print business card",
+    "disconnect": "Disconnect",
+    "errors": {
+      "session-expired": "Session expired",
+      "invalid-token": "Invalid token",
+      "error-decoding-token": "Error decoding token",
+      "error-checking-slug": "Error checking slug availability",
+      "error-updating-profile": "Error updating profile",
+      "error-retrieving-profile": "Error retrieving profile",
+      "fill-required-fields": "Fill in all required fields",
+      "file-or-email-not-available": "File or email not available",
+      "invalid-image-file": "Please select a valid image file (JPG, PNG, WEBP, GIF, AVIF, TIFF, HEIC, BMP, or SVG)",
+      "image-size-exceeded": "Image size cannot exceed 5MB",
+      "error-during-upload": "Error during upload"
+    },
+    "success": {
+      "profile-updated": "Profile updated successfully",
+      "profile-picture-updated": "Profile picture updated successfully!",
+      "profile-link-copied": "Profile link copied to clipboard"
+    }
+  },
+  "dashboard": {
+    "dashboard": "Dashboard",
+    "search-user": "Search user...",
+    "create-user": "Create User",
+    "no-users-available": "No users available",
+    "created-on": "Created on",
+    "edit-profile": "Edit your profile",
+    "disconnect": "Disconnect",
+    "create-user-dialog": {
+      "header": "Create User",
+      "email-address": "Email Address",
+      "email-placeholder": "Enter email address",
+      "email-required": "Email is required",
+      "email-invalid": "Please enter a valid email address",
+      "verification-message": "Once created, the user will receive a verification email to access and configure their personal profile.",
+      "create-user": "Create User"
+    },
+    "confirm-dialog": {
+      "create": {
+        "message": "Confirm that you want to proceed with creation",
+        "header": "Create user",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "delete": {
+        "message": "Are you sure you want to delete this user?",
+        "header": "Delete user",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      }
+    },
+    "errors": {
+      "fill-required-fields": "Please fill in all required fields correctly",
+      "user-creation-failed": "Failed to create user",
+      "user-creation-error": "An error occurred while creating the user",
+      "error-retrieving-users": "Error retrieving users",
+      "error-deleting-user": "Error deleting user",
+      "user-profile-not-found": "User profile not found"
+    },
+    "success": {
+      "user-created": "User created successfully",
+      "user-deleted": "User deleted successfully"
+    }
   }
 }

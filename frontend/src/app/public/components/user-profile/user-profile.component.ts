@@ -9,6 +9,7 @@ import { UserService } from '../../../services/user.service';
 import { DialogModule } from 'primeng/dialog';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { ThemeService } from '../../../services/theme.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-profile',
@@ -19,7 +20,8 @@ import { ThemeService } from '../../../services/theme.service';
     CommonModule,
     ButtonModule,
     DialogModule,
-    QRCodeComponent
+    QRCodeComponent,
+    TranslateModule
   ],
   providers: [
     MessageService,
@@ -45,7 +47,8 @@ export class UserProfileComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private translate: TranslateService
   ) {
     this.isDarkMode$ = this.themeService.isDarkMode$;
   }
@@ -73,7 +76,7 @@ export class UserProfileComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'User not found')
+        this.notificationService.handleError(error, this.translate.instant('user-profile.errors.user-not-found'))
         this.notFound = true;
       }
     })
@@ -90,7 +93,7 @@ export class UserProfileComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'User not found')
+        this.notificationService.handleError(error, this.translate.instant('user-profile.errors.user-not-found'))
         this.notFound = true;
       }
     })

@@ -8,15 +8,15 @@
     <div class="flex gap-2 align-items-center">
 
         
-        <div (click)="onEditProfileClick()" class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none cursor-pointer" pTooltip="Edit your profile" tooltipPosition="bottom">
+        <div (click)="onEditProfileClick()" class="p-2 border-1 border-round-md surface-border sm:inline hidden ml-2 select-none cursor-pointer" [pTooltip]="'dashboard.edit-profile' | translate" tooltipPosition="bottom">
             <i class="pi pi-user mr-2"></i>{{this.currentUserEmail}}
         </div>
         
-        <i (click)="onEditProfileClick()" class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline cursor-pointer" pTooltip="Edit your profile" tooltipPosition="bottom"></i>
+        <i (click)="onEditProfileClick()" class="pi pi-user p-2 border-1 border-round-md surface-border sm:hidden inline cursor-pointer" [pTooltip]="'dashboard.edit-profile' | translate" tooltipPosition="bottom"></i>
         
         <p-button [icon]="(isDarkMode$ | async) ? 'pi pi-moon' : 'pi pi-sun'" severity="secondary" outlined="true" (click)="toggleDarkMode()" pTooltip="Toggle dark mode" tooltipPosition="bottom"/>
 
-        <p-button class="sm:inline hidden" icon="pi pi-sign-out text-sm" label="Disconnect" severity="secondary" text="true" (click)="disconnect()" />
+        <p-button class="sm:inline hidden" icon="pi pi-sign-out text-sm" [label]="'dashboard.disconnect' | translate" severity="secondary" text="true" (click)="disconnect()" />
 
         <p-button class="sm:hidden inline" icon="pi pi-sign-out text-sm" severity="secondary" outlined="true" (click)="disconnect()" pTooltip="Disconnect" tooltipPosition="bottom"/>
     </div>
@@ -25,17 +25,17 @@
 <main style="max-width: 1200px;" class="m-auto flex flex-column p-3 gap-3 mt-2">
     <header class="flex flex-column gap-2">
 
-        <p class="text-2xl font-semibold">Dashboard</p>
+        <p class="text-2xl font-semibold">{{ 'dashboard.dashboard' | translate }}</p>
 
         <div class="flex gap-2 w-full align-items-center">
             <p-inputgroup class="w-full">
-                <input pInputText placeholder="Search user..." class="w-full" style="padding: 0 .5rem" (input)="onSearch($event)" />
+                <input pInputText [placeholder]="'dashboard.search-user' | translate" class="w-full" style="padding: 0 .5rem" (input)="onSearch($event)" />
                 <p-inputgroup-addon>
                     <p-button icon="pi pi-search" severity="secondary" severity="primary" />
                 </p-inputgroup-addon>
             </p-inputgroup>
 
-            <p-button icon="pi pi-user-plus" label="Create User" class="white-space-nowrap"
+            <p-button icon="pi pi-user-plus" [label]="'dashboard.create-user' | translate" class="white-space-nowrap"
                 (click)="toggleNewUserDialog()" />
         </div>
     </header>
@@ -46,37 +46,37 @@
             class="flex w-full border-bottom-1 surface-border py-2 justify-content-between align-items-center">
             <div class="flex flex-column select-none">
                 <p class="font-semibold text-lg">{{item?.email}} <i *ngIf="item?.is_configured" class="pi pi-verified text-xs text-primary"></i></p>
-                <p class="text-sm text-color-secondary">Created on {{item?.created_at | date:'dd/MM/yyyy'}}</p>
+                <p class="text-sm text-color-secondary">{{ 'dashboard.created-on' | translate }} {{item?.created_at | date:'dd/MM/yyyy'}}</p>
             </div>
             <p-button severity="danger" icon="pi pi-trash" text="true"
                 (click)="deleteUserDialog($event, item?.email)" />
         </div>
         } @empty {
-        <p class="text-sm mt-3 text-color-secondary select-none">No users available</p>
+        <p class="text-sm mt-3 text-color-secondary select-none">{{ 'dashboard.no-users-available' | translate }}</p>
         }
     </content>
 </main>
 
 <p-confirmdialog />
 
-<p-dialog header="Create User" [modal]="true" [(visible)]="showNewUserDialog"
+<p-dialog [header]="'dashboard.create-user-dialog.header' | translate" [modal]="true" [(visible)]="showNewUserDialog"
     [breakpoints]="{ '1199px': '70vw', '575px': '90vw' }" [style]="{ width: '30vw' }" draggable="false"
     [resizable]="false">
     <main>
         <form [formGroup]="form" (ngSubmit)="confirmCreationDialog($event)" class="flex flex-column gap-2 pb-2">
             <div class="flex gap-1 flex-column">
-                <label for="email">Email Address</label>
-                <input formControlName="email" type="email" pInputText placeholder="Enter email address" />
+                <label for="email">{{ 'dashboard.create-user-dialog.email-address' | translate }}</label>
+                <input formControlName="email" type="email" pInputText [placeholder]="'dashboard.create-user-dialog.email-placeholder' | translate" />
                 <small class="text-color-secondary"
-                    *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">Email is required</small>
+                    *ngIf="form.get('email')?.errors?.['required'] && form.get('email')?.touched">{{ 'dashboard.create-user-dialog.email-required' | translate }}</small>
                 <small class="text-color-secondary"
-                    *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">Please enter a valid email address</small>
+                    *ngIf="form.get('email')?.errors?.['email'] && form.get('email')?.touched">{{ 'dashboard.create-user-dialog.email-invalid' | translate }}</small>
             </div>
 
-            <small class="text-color-secondary">Once created, the user will receive a verification email to access and configure their personal profile.</small>
+            <small class="text-color-secondary">{{ 'dashboard.create-user-dialog.verification-message' | translate }}</small>
 
             <div class="flex gap-2 flex-column mt-2">
-                <p-button label="Create User" fluid="true" type="submit" [disabled]="!form.valid || loading"
+                <p-button [label]="'dashboard.create-user-dialog.create-user' | translate" fluid="true" type="submit" [disabled]="!form.valid || loading"
                     [loading]="loading" />
             </div>
         </form>

@@ -22,7 +22,6 @@ VirtualCard is a modern, full-stack web application that revolutionizes the way 
 - **API-First Architecture**: Well-documented RESTful API
 - **Containerized Deployment**: Docker-based deployment with Docker Compose
 - **Object Storage**: MinIO integration for file storage
-- **Database Triggers**: Automatic timestamp management
 - **Input Validation**: Comprehensive data validation using class-validator
 
 ## 🏗️ Architecture
@@ -70,7 +69,6 @@ VirtualCard is a modern, full-stack web application that revolutionizes the way 
   - File upload handling with Multer
   - Database triggers
   - Security headers
-  - Swagger documentation
   - TypeORM for database operations
   - DTO pattern for data transfer
 
@@ -106,7 +104,6 @@ VirtualCard is a modern, full-stack web application that revolutionizes the way 
   - Password recovery flow
   - Session management
   - Role-based permissions
-  - Remember me functionality
 
 ## 👥 User Roles
 
@@ -187,8 +184,3 @@ The API documentation is available in the `/docs` directory, including:
 - Data validation rules
 - Response structures
 - Error handling
-- Swagger UI integration
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

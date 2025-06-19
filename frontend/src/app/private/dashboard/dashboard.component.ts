@@ -18,6 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { finalize } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,7 +36,8 @@ import { ThemeService } from '../../services/theme.service';
     TooltipModule,
     DialogModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslateModule
   ],
   providers: [
     MessageService,
@@ -68,7 +70,8 @@ export class DashboardComponent {
     private userService: UserService,
     private confirmationService: ConfirmationService,
     private route: ActivatedRoute,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private translate: TranslateService
   ) {
     this.isDarkMode$ = this.themeService.isDarkMode$;
     this.getUsers();
@@ -92,18 +95,18 @@ export class DashboardComponent {
   confirmCreationDialog(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Confirm that you want to proceed with creation',
-      header: 'Create user',
+      message: this.translate.instant('dashboard.confirm-dialog.create.message'),
+      header: this.translate.instant('dashboard.confirm-dialog.create.header'),
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'Cancel',
+        label: this.translate.instant('dashboard.confirm-dialog.create.cancel'),
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Confirm',
+        label: this.translate.instant('dashboard.confirm-dialog.create.confirm'),
       },
       accept: () => {
         this.create();
@@ -117,7 +120,7 @@ export class DashboardComponent {
 
   create() {
     if (this.form.invalid) {
-      this.notificationService.handleWarning('Please fill in all required fields correctly');
+      this.notificationService.handleWarning(this.translate.instant('dashboard.errors.fill-required-fields'));
       return;
     }
 
@@ -133,14 +136,14 @@ export class DashboardComponent {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.notificationService.handleSuccess('User created successfully');
+            this.notificationService.handleSuccess(this.translate.instant('dashboard.success.user-created'));
             this.getUsers(); // Refresh user list
           } else {
-            this.notificationService.handleError(response.message, 'Failed to create user');
+            this.notificationService.handleError(response.message, this.translate.instant('dashboard.errors.user-creation-failed'));
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, 'An error occurred while creating the user');
+          this.notificationService.handleError(error, this.translate.instant('dashboard.errors.user-creation-error'));
         }
       });
   }
@@ -148,18 +151,18 @@ export class DashboardComponent {
   deleteUserDialog(event: Event, email: string) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: 'Are you sure you want to delete this user?',
-      header: 'Delete user',
+      message: this.translate.instant('dashboard.confirm-dialog.delete.message'),
+      header: this.translate.instant('dashboard.confirm-dialog.delete.header'),
       closable: true,
       closeOnEscape: true,
       icon: 'pi pi-exclamation-circle',
       rejectButtonProps: {
-        label: 'Cancel',
+        label: this.translate.instant('dashboard.confirm-dialog.delete.cancel'),
         severity: 'secondary',
         outlined: true,
       },
       acceptButtonProps: {
-        label: 'Delete',
+        label: this.translate.instant('dashboard.confirm-dialog.delete.delete'),
         severity: 'danger'
       },
       accept: () => {
@@ -189,7 +192,7 @@ export class DashboardComponent {
     if (this.currentUserUuid) {
       this.router.navigateByUrl(`/private/edit/${this.currentUserUuid}`);
     } else {
-      this.notificationService.handleError(null, 'User profile not found');
+      this.notificationService.handleError(null, this.translate.instant('dashboard.errors.user-profile-not-found'));
     }
   }
 
@@ -202,11 +205,11 @@ export class DashboardComponent {
           // Aggiorna l'UUID dell'utente corrente dopo aver ottenuto la lista
           this.setCurrentUserEmail();
         } else {
-          this.notificationService.showMessage('error', response.message || 'Error retrieving users');
+          this.notificationService.showMessage('error', response.message || this.translate.instant('dashboard.errors.error-retrieving-users'));
         }
       },
       error: (error) => {
-        this.notificationService.handleError(error, 'Error retrieving users');
+        this.notificationService.handleError(error, this.translate.instant('dashboard.errors.error-retrieving-users'));
       }
     });
   }
@@ -219,14 +222,14 @@ export class DashboardComponent {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.notificationService.showMessage('success', 'User deleted successfully');
+            this.notificationService.showMessage('success', this.translate.instant('dashboard.success.user-deleted'));
             this.getUsers(); // Refresh user list
           } else {
-            this.notificationService.showMessage('error', response.message || 'Error deleting user');
+            this.notificationService.showMessage('error', response.message || this.translate.instant('dashboard.errors.error-deleting-user'));
           }
         },
         error: (error) => {
-          this.notificationService.handleError(error, 'Error deleting user');
+          this.notificationService.handleError(error, this.translate.instant('dashboard.errors.error-deleting-user'));
         }
       });
   }

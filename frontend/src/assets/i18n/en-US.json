@@ -13,6 +13,7 @@
     },
     "recover": {
       "title": "Recover Password",
+      "email-address": "Email Address",
       "email-placeholder": "Enter email address",
       "recovery-message": "If the email exists in the system, you will receive a link to reset your password.",
       "send-request": "Send Request",

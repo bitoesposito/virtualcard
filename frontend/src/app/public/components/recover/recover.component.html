@@ -15,7 +15,7 @@
 
     <form [formGroup]="form" (ngSubmit)="recover()" class="flex flex-column gap-2">
       <div class="flex gap-1 flex-column">
-        <label for="email">{{ 'auth.email-address' | translate }}</label>
+        <label for="email">{{ 'auth.recover.email-address' | translate }}</label>
         <input formControlName="email" type="email" pInputText [placeholder]="'auth.recover.email-placeholder' | translate" />
       </div>
 
